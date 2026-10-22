@@ -1,0 +1,89 @@
+<%- include('../partials/header', { title: 'Manage Notifications', activeNav: 'admin', layout: 'admin' }) %>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-header bg-primary text-white p-4 border-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-1 fw-bold"><i class="bi bi-broadcast me-2"></i>Send Notifications</h4>
+                        <p class="mb-0 text-white-50 small">Broadcast messages to students in real-time.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-body p-4 bg-white">
+                <form action="/admin/notifications/send" method="POST" id="notificationForm">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-dark">Notification Title <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control form-control-lg bg-light" name="title" required placeholder="e.g. System Maintenance, Exam Alert">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-dark">Message Body</label>
+                        <textarea class="form-control bg-light" name="body" rows="4" placeholder="Detailed message..."></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-semibold text-dark">Category</label>
+                            <select class="form-select bg-light" name="category">
+                                <option value="general">General Notice</option>
+                                <option value="exam">Exam Alert</option>
+                                <option value="system">System Maintenance</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-semibold text-dark">Target Audience <span class="text-danger">*</span></label>
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="sendToAll" name="sendToAll" checked onchange="toggleStudentSelect()">
+                                <label class="form-check-label" for="sendToAll">Send to ALL Students</label>
+                            </div>
+                            
+                            <div id="specificStudentsContainer" class="d-none mt-3">
+                                <label class="form-label text-muted small">Select Specific Students:</label>
+                                <select class="form-select bg-light" name="targetStudents" id="targetStudents" multiple size="4">
+                                    <% students.forEach(student => { %>
+                                        <option value="<%= student._id %>"><%= student.username %> (<%= student.email %>)</option>
+                                    <% }); %>
+                                </select>
+                                <div class="form-text">Hold Ctrl/Cmd to select multiple students.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="reset" class="btn btn-light px-4">Reset</button>
+                        <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">
+                            <i class="bi bi-send-fill me-2"></i> Send Notification
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleStudentSelect() {
+    const isAll = document.getElementById('sendToAll').checked;
+    const container = document.getElementById('specificStudentsContainer');
+    const select = document.getElementById('targetStudents');
+    
+    if (isAll) {
+        container.classList.add('d-none');
+        select.removeAttribute('required');
+    } else {
+        container.classList.remove('d-none');
+        select.setAttribute('required', 'required');
+    }
+}
+</script>
+
+<%- include('../partials/footer') %>

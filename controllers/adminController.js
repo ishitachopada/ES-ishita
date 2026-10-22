@@ -3,6 +3,7 @@ const Question = require('../models/Question');
 const Submission = require('../models/Submission');
 const Category = require('../models/Category');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 
 exports.getDashboard = async (req, res) => {
     try {
@@ -756,5 +757,119 @@ exports.postEditExam = async (req, res) => {
         console.error(err);
         req.flash('error', 'Error updating exam');
         res.redirect('/admin/manage-exams');
+    }
+};
+
+exports.getAssignExam = async (req, res) => {
+    try {
+        const exam = await Exam.findById(req.params.id);
+        if (!exam) {
+            req.flash('error', 'Exam not found');
+            return res.redirect('/admin/manage-exams');
+        }
+        
+        // Find all students
+        const User = require('../models/User');
+        const students = await User.find({ role: 'student' }).sort({ username: 1 });
+        
+        res.render('admin/assignExam', { exam, students });
+    } catch (err) {
+        console.error(err);
+        req.flash('error', 'Error loading assignment page');
+        res.redirect('/admin/manage-exams');
+    }
+};
+
+exports.postAssignExam = async (req, res) => {
+    try {
+        const exam = await Exam.findById(req.params.id);
+        if (!exam) {
+            req.flash('error', 'Exam not found');
+            return res.redirect('/admin/manage-exams');
+        }
+
+        const assignToAll = req.body.assignToAll === 'true';
+        let assignedTo = req.body.assignedTo || [];
+        
+        // Ensure assignedTo is an array
+        if (!Array.isArray(assignedTo)) {
+            assignedTo = [assignedTo];
+        }
+
+        exam.assignToAll = assignToAll;
+        exam.assignedTo = assignToAll ? [] : assignedTo;
+
+        await exam.save();
+        
+        req.flash('success', 'Exam assignments updated successfully');
+        res.redirect('/admin/manage-exams');
+    } catch (err) {
+        console.error(err);
+        req.flash('error', 'Error updating exam assignments');
+        res.redirect('/admin/manage-exams');
+    }
+};
+
+exports.getNotificationsPage = async (req, res) => {
+    try {
+        const students = await User.find({ role: 'student' }).sort({ username: 1 });
+        res.render('admin/notifications', { students });
+    } catch (err) {
+        console.error(err);
+        req.flash('error', 'Error loading notifications page');
+        res.redirect('/admin/dashboard');
+    }
+};
+
+exports.sendNotification = async (req, res) => {
+    try {
+        const { title, body, category, sendToAll, targetStudents } = req.body;
+        
+        let usersToNotify = [];
+        if (sendToAll === 'on' || sendToAll === true || sendToAll === 'true') {
+            const allStudents = await User.find({ role: 'student' });
+            usersToNotify = allStudents.map(s => s._id);
+        } else {
+            if (Array.isArray(targetStudents)) {
+                usersToNotify = targetStudents;
+            } else if (targetStudents) {
+                usersToNotify = [targetStudents];
+            }
+        }
+        
+        if (usersToNotify.length === 0) {
+            req.flash('error', 'No students selected for notification');
+            return res.redirect('/admin/notifications');
+        }
+
+        const notifications = usersToNotify.map(userId => ({
+            user: userId,
+            title,
+            body: body || '',
+            category: category || 'general',
+            read: false,
+            createdAt: new Date()
+        }));
+
+        const inserted = await Notification.insertMany(notifications);
+        
+        // Emit Socket event to all targeted students
+        try {
+            const io = req.app.get('io');
+            if (io) {
+                inserted.forEach(notif => {
+                    io.to(`user:${notif.user}`).emit('new-notification', notif);
+                });
+            }
+        } catch (e) {
+            console.error('Socket error emitting notification', e);
+        }
+
+        req.flash('success', `Notification sent to ${usersToNotify.length} student(s)`);
+        res.redirect('/admin/notifications');
+    } catch (err) {
+        console.error(err);
+        req.flash('error', 'Failed to send notification');
+        res.redirect('/admin/notifications');
     }
 };

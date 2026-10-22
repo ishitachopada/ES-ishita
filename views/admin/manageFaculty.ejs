@@ -1,65 +1,101 @@
 <%- include('../partials/header', { title: 'Manage Faculty' }) %>
 
-<div class="row">
-  <div class="col-lg-6">
-    <div class="card mb-4 shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title">Register Faculty</h5>
-        <form action="/admin/manage-faculty" method="POST">
-          <div class="mb-3">
-            <label class="form-label">Username</label>
-            <input type="text" class="form-control" name="username" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input type="email" class="form-control" name="email" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Password</label>
-            <input type="password" class="form-control" name="password" placeholder="Default if blank: Password@123">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Department</label>
-            <input type="text" class="form-control" name="department" placeholder="e.g. Computer Science">
-          </div>
-          <div class="d-grid">
-            <button type="submit" class="btn btn-primary"><i class="bi bi-person-plus"></i> Create Faculty</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-  <div class="col-lg-6">
-    <div class="card mb-4 shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title">Faculty List</h5>
-        <div class="table-responsive">
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Department</th>
-                <th>Joined</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% faculty.forEach(f => { %>
-                <tr>
-                  <td><%= f.username %></td>
-                  <td><%= f.email %></td>
-                  <td><%= f.department || '-' %></td>
-                  <td><%= new Date(f.createdAt).toLocaleDateString() %></td>
-                </tr>
-              <% }); %>
-            </tbody>
-          </table>
+<div class="row g-4">
+    <!-- PAGE HEADER -->
+    <div class="col-12">
+        <div class="card p-4 border-0 shadow-sm bg-white">
+            <div class="row align-items-center g-3">
+                <div class="col-12">
+                    <h3 class="fw-bold mb-1 text-dark"><i class="bi bi-people text-primary me-2"></i>Faculty Registry</h3>
+                    <p class="text-muted small mb-0">Add academic partners, assign credentials, and group faculty by departments.</p>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
+
+    <!-- FORM AND LIST COLUMNS -->
+    <div class="col-12 col-lg-4">
+        <div class="card p-4 border-0 shadow-sm bg-white">
+            <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-person-plus text-primary me-2"></i>Register Faculty</h5>
+            <form action="/admin/manage-faculty" method="POST" class="d-flex flex-column gap-3">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <div>
+                    <label class="form-label text-muted small fw-bold text-uppercase">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
+                        <input type="text" class="form-control border-start-0 bg-light" name="username" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label text-muted small fw-bold text-uppercase">Email Address</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+                        <input type="email" class="form-control border-start-0 bg-light" name="email" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label text-muted small fw-bold text-uppercase">Temporary Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-muted"></i></span>
+                        <input type="password" class="form-control border-start-0 bg-light" name="password" placeholder="Default: Password@123">
+                    </div>
+                    <span class="form-text text-muted small" style="font-size:0.725rem;">Uses default value if left blank.</span>
+                </div>
+                <div>
+                    <label class="form-label text-muted small fw-bold text-uppercase">Academic Department</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-building text-muted"></i></span>
+                        <input type="text" class="form-control border-start-0 bg-light" name="department" placeholder="e.g. Computer Science">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm w-100 mt-2 rounded-pill py-2"><i class="bi bi-person-plus-fill me-1"></i> Register Faculty</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-8">
+        <div class="card table-card border-0 shadow-sm bg-white">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0 fw-bold text-dark">Faculty Directory</h5>
+            </div>
+            
+            <div class="table-responsive">
+                <% if (!faculty || faculty.length === 0) { %>
+                    <div class="p-5 text-center text-muted">
+                        <i class="bi bi-people-fill fs-2 d-block mb-2 text-muted"></i>
+                        No faculty members registered yet.
+                    </div>
+                <% } else { %>
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr class="table-light">
+                                <th class="py-3 px-4">Username</th>
+                                <th class="py-3">Email</th>
+                                <th class="py-3">Department</th>
+                                <th class="py-3 px-4">Registered Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% faculty.forEach(f => { %>
+                                <tr>
+                                    <td class="px-4"><span class="fw-bold text-dark"><%= f.username %></span></td>
+                                    <td class="text-muted small"><%= f.email %></td>
+                                    <td>
+                                        <% if (f.department) { %>
+                                            <span class="badge bg-primary-subtle text-primary fw-semibold"><%= f.department %></span>
+                                        <% } else { %>
+                                            <span class="text-muted small">—</span>
+                                        <% } %>
+                                    </td>
+                                    <td class="text-muted small px-4"><%= new Date(f.createdAt).toLocaleDateString([], {day: '2-digit', month: 'short', year: 'numeric'}) %></td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                <% } %>
+            </div>
+        </div>
+    </div>
 </div>
 
 <%- include('../partials/footer') %>
-
-

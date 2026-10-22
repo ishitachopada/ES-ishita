@@ -1,84 +1,195 @@
-<style>
-  body {
-    background: linear-gradient(135deg, #e3f0ff 0%, #ffffff 100%) !important;
-    min-height: 100vh;
-    overflow: hidden;
-  }
-  .register-bg {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-</style>
 <%- include('../partials/header', { title: 'Register', messages: typeof messages !== 'undefined' ? messages : {}, user: typeof user !== 'undefined' ? user : null }) %>
 
-<div class="register-bg">
-  <div class="col-12 col-md-8 col-lg-5 mx-auto">
-    <div class="card shadow border-0" style="box-shadow: 0 2px 8px rgba(0,0,0,0.08); background-color: #fff;">
-      <div class="card-body p-4 p-md-5">
-        <h3 class="card-title text-center mb-4">
-          <i class="bi bi-person-plus"></i> Register
-        </h3>
-        <form action="/register" method="POST" id="registerForm" autocomplete="off">
-          <div class="row g-3">
-            <div class="col-12">
-              <label for="username" class="form-label">Username</label>
-              <input type="text" class="form-control" id="username" name="username" required>
-            </div>
-            <div class="col-12">
-              <label for="email" class="form-label">Email</label>
-              <input type="email" class="form-control" id="email" name="email" required>
-            </div>
-            <div class="col-12 col-md-6">
-              <label for="password" class="form-label">Password</label>
-              <input type="password" class="form-control" id="password" name="password" required>
-            </div>
-            <div class="col-12 col-md-6">
-              <label for="confirmPassword" class="form-label">Confirm Password</label>
-              <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
-            </div>
-            <% if (typeof user !== 'undefined' && user && user.role === 'admin') { %>
-            <div class="col-12">
-              <label for="role" class="form-label">Role</label>
-              <select class="form-select" id="role" name="role" required>
-                <option value="student" selected>Student</option>
-                <option value="faculty">Faculty</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-            <% } %>
-            <div class="col-12 d-grid mb-2">
-              <button type="submit" class="btn btn-primary">Register</button>
-            </div>
-          </div>
-        </form>
-        <div class="text-center mb-2">
-          <span>or</span>
+<div class="auth-split-container">
+    <!-- LEFT SIDEBAR ILLUSTRATION -->
+    <div class="auth-sidebar-panel d-none d-lg-flex">
+        <div class="mb-5">
+            <i class="bi bi-mortarboard-fill text-white" style="font-size: 3.25rem;"></i>
+            <h2 class="text-white mt-3 fw-bold display-6">ExamSystem</h2>
+            <p class="lead opacity-75">Secure, robust, and intuitive examination environment for global educators and students.</p>
         </div>
-        <div class="d-grid mb-2">
-          <a href="/auth/google" class="btn btn-outline-primary">
-            <i class="bi bi-google"></i> Register with Google
-          </a>
+        <div class="mt-4">
+            <div class="d-flex align-items-start gap-3 mb-4">
+                <i class="bi bi-shield-check fs-2 text-white opacity-90 mt-1"></i>
+                <div>
+                    <h5 class="mb-1 fw-semibold text-white">Secure Proctoring</h5>
+                    <p class="mb-0 small text-white-50">Locked down full-screen focus modes and active anti-cheat tabs validation.</p>
+                </div>
+            </div>
+            <div class="d-flex align-items-start gap-3 mb-4">
+                <i class="bi bi-lightning-charge fs-2 text-white opacity-90 mt-1"></i>
+                <div>
+                    <h5 class="mb-1 fw-semibold text-white">Instant Auto-Grading</h5>
+                    <p class="mb-0 small text-white-50">Instant grading feedback for structured MCQs and fuzzy matching queries.</p>
+                </div>
+            </div>
+            <div class="d-flex align-items-start gap-3">
+                <i class="bi bi-pie-chart fs-2 text-white opacity-90 mt-1"></i>
+                <div>
+                    <h5 class="mb-1 fw-semibold text-white">Advanced Control Panel</h5>
+                    <p class="mb-0 small text-white-50">Track logs, export reports to Excel, print results, and assign students to faculty.</p>
+                </div>
+            </div>
         </div>
-        <div class="text-center mt-3">
-          <p>Already have an account? <a href="/login">Login here</a></p>
-        </div>
-      </div>
     </div>
-  </div>
+    
+    <!-- RIGHT FORM PANEL -->
+    <div class="auth-form-panel mx-auto">
+        <div class="auth-form-wrapper">
+            <div class="mb-4 text-center text-lg-start">
+                <h3 class="fw-bold mb-2">Create an account</h3>
+                <p class="text-muted">Start taking tests and viewing results instantly.</p>
+            </div>
+            
+            <form action="/register" method="POST" id="registerForm" autocomplete="off">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person text-muted"></i></span>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Choose a username" required>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email Address</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-envelope text-muted"></i></span>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="email@example.com" required>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock text-muted"></i></span>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required>
+                        </div>
+                        <!-- Password strength indicator -->
+                        <div class="pwd-meter">
+                            <div class="pwd-bar" id="pwrStrengthBar"></div>
+                        </div>
+                        <span id="pwrStrengthText" class="small d-block mt-1" style="font-size:0.75rem;"></span>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="confirmPassword" class="form-label">Confirm Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-check-all text-muted"></i></span>
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="••••••••" required>
+                        </div>
+                        <div id="feedbackMatch"></div>
+                    </div>
+                </div>
+                
+                <% if (typeof user !== 'undefined' && user && user.role === 'admin') { %>
+                <div class="mb-3">
+                    <label for="role" class="form-label">Assign Role (Admin Only)</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-shield-lock text-muted"></i></span>
+                        <select class="form-select" id="role" name="role" required>
+                            <option value="student" selected>Student</option>
+                            <option value="faculty">Faculty</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <% } %>
+                
+                <button type="submit" class="btn btn-primary w-100 py-2.5 mb-3 mt-2">
+                    <i class="bi bi-person-plus me-2"></i>Sign Up
+                </button>
+            </form>
+            
+            <div class="text-center my-3 position-relative">
+                <hr class="text-muted">
+                <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted small">or register with</span>
+            </div>
+            
+            <a href="/auth/google" class="btn btn-outline-secondary w-100 py-2.5 d-flex align-items-center justify-content-center gap-2" style="border-color: var(--border-color);">
+                <i class="bi bi-google text-danger"></i> Google Account
+            </a>
+            
+            <div class="text-center mt-5 text-muted small">
+                Already registered? <a href="/login" class="fw-semibold text-decoration-none text-primary">Sign in here</a>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-  document.getElementById('registerForm').addEventListener('submit', function(e) {
-    const password = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    if (password !== confirmPassword) {
-      e.preventDefault();
-      alert('Passwords do not match!');
-      document.getElementById('confirmPassword').focus();
+  (function() {
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirmPassword');
+    const pwrStrengthBar = document.getElementById('pwrStrengthBar');
+    const pwrStrengthText = document.getElementById('pwrStrengthText');
+    const feedbackMatch = document.getElementById('feedbackMatch');
+    const form = document.getElementById('registerForm');
+
+    password.addEventListener('input', function() {
+      const val = password.value;
+      let score = 0;
+      if (!val) {
+        pwrStrengthBar.style.width = '0%';
+        pwrStrengthText.textContent = '';
+        return;
+      }
+      if (val.length >= 6) score++;
+      if (/[A-Z]/.test(val)) score++;
+      if (/[0-9]/.test(val)) score++;
+      if (/[^A-Za-z0-9]/.test(val)) score++;
+
+      let width = '25%';
+      let color = 'var(--danger-color)';
+      let text = 'Weak';
+      
+      if (score === 2) {
+        width = '50%';
+        color = 'var(--warning-color)';
+        text = 'Medium';
+      } else if (score === 3) {
+        width = '75%';
+        color = 'var(--primary-color)';
+        text = 'Strong';
+      } else if (score >= 4) {
+        width = '100%';
+        color = 'var(--success-color)';
+        text = 'Very Strong';
+      }
+
+      pwrStrengthBar.style.width = width;
+      pwrStrengthBar.style.backgroundColor = color;
+      pwrStrengthText.textContent = 'Strength: ' + text;
+      pwrStrengthText.style.color = color;
+    });
+
+    function checkMatch() {
+      if (!confirmPassword.value) {
+        feedbackMatch.textContent = '';
+        return;
+      }
+      if (password.value === confirmPassword.value) {
+        feedbackMatch.textContent = 'Passwords match';
+        feedbackMatch.className = 'small text-success mt-1';
+      } else {
+        feedbackMatch.textContent = 'Passwords do not match';
+        feedbackMatch.className = 'small text-danger mt-1';
+      }
     }
-  });
+
+    password.addEventListener('input', checkMatch);
+    confirmPassword.addEventListener('input', checkMatch);
+
+    form.addEventListener('submit', function(e) {
+      if (password.value !== confirmPassword.value) {
+        e.preventDefault();
+        alert('Passwords do not match!');
+        confirmPassword.focus();
+      }
+    });
+  })();
 </script>
 
-<%- include('../partials/footer') %>
+<%- include('../partials/footer', { title: typeof title !== 'undefined' ? title : 'Register' }) %>

@@ -1,99 +1,107 @@
 <%- include('../partials/header', { title: 'Manage Categories', messages: typeof messages !== 'undefined' ? messages : {}, user: typeof user !== 'undefined' ? user : null }) %>
-<div class="container py-3">
-  <div class="row align-items-center mb-3">
-    <div class="col-12 col-md-8">
-      <h2 class="mb-2 mb-md-0"><i class="bi bi-tags"></i> Manage Categories</h2>
-    </div>
-    <div class="col-12 col-md-4 text-md-end">
-      <span class="badge bg-primary p-2">Total: <%= categories.length %></span>
-    </div>
-  </div>
 
-  <div class="row g-3">
-    <div class="col-12 col-lg-5">
-      <div class="card h-100">
-        <div class="card-body">
-          <h5 class="card-title mb-3"><i class="bi bi-plus-circle"></i> Add New Category</h5>
-          <form action="/admin/manage-categories" method="POST" class="row g-3">
-            <div class="col-12">
-              <label class="form-label">Name</label>
-              <input name="name" class="form-control" placeholder="e.g. Mathematics" required />
+<div class="row g-4">
+    <!-- HEADER -->
+    <div class="col-12">
+        <div class="card p-4 border-0 shadow-sm bg-white">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h3 class="fw-bold mb-1 text-dark"><i class="bi bi-tags text-primary me-2"></i>Assessment Categories</h3>
+                    <p class="text-muted small mb-0">Group your exams by academic topics or departments.</p>
+                </div>
+                <span class="badge bg-primary-subtle text-primary px-3 py-2 text-uppercase fs-6">Total: <%= categories.length %></span>
             </div>
-            <div class="col-12">
-              <label class="form-label">Description <span class="text-muted">(optional)</span></label>
-              <textarea name="description" class="form-control" rows="2" placeholder="Short description"></textarea>
-            </div>
-            <div class="col-12 d-grid d-sm-flex gap-2">
-              <button class="btn btn-primary"><i class="bi bi-save"></i> Add Category</button>
-              <button class="btn btn-outline-secondary" type="reset"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
-            </div>
-          </form>
         </div>
-      </div>
     </div>
 
-    <div class="col-12 col-lg-7">
-      <div class="card">
-        <div class="card-body">
-          <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
-            <h5 class="card-title mb-0"><i class="bi bi-list-ul"></i> Category List</h5>
-            <div class="input-group" style="max-width: 280px;">
-              <span class="input-group-text"><i class="bi bi-search"></i></span>
-              <input type="text" id="catSearch" class="form-control" placeholder="Search categories">
-            </div>
-          </div>
-          <% if (categories.length === 0) { %>
-            <div class="alert alert-info"><i class="bi bi-info-circle"></i> No categories yet. Add your first one on the left.</div>
-          <% } else { %>
-          <div class="table-responsive">
-            <table class="table align-middle">
-              <thead>
-                <tr>
-                  <th style="width: 25%;">Name</th>
-                  <th>Description</th>
-                  <th class="text-end" style="width: 22%;">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="catTableBody">
-                <% categories.forEach(cat => { %>
-                  <tr>
-                    <td><span class="fw-semibold"><%= cat.name %></span></td>
-                    <td class="text-muted"><%= cat.description || '-' %></td>
-                    <td class="text-end">
-                      <div class="btn-group">
-                        <a href="/admin/edit-category/<%= cat._id %>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
-                        <a href="/admin/delete-category/<%= cat._id %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete category?')"><i class="bi bi-trash"></i></a>
-                      </div>
-                    </td>
-                  </tr>
-                <% }) %>
-              </tbody>
-            </table>
-          </div>
-          <% } %>
+    <!-- FORM AND TABLE COLUMNS -->
+    <div class="col-12 col-lg-4">
+        <div class="card p-4 border-0 shadow-sm bg-white">
+            <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-plus-circle text-primary me-2"></i>Add Category</h5>
+            <form action="/admin/manage-categories" method="POST" class="d-flex flex-column gap-3">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <div>
+                    <label class="form-label text-muted small fw-bold text-uppercase">Category Name</label>
+                    <input name="name" class="form-control bg-light" placeholder="e.g. Science" required />
+                </div>
+                <div>
+                    <label class="form-label text-muted small fw-bold text-uppercase">Description <span class="text-muted">(Optional)</span></label>
+                    <textarea name="description" class="form-control bg-light" rows="3" placeholder="Define category scope..."></textarea>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary btn-sm flex-grow-1 rounded-pill"><i class="bi bi-check-circle me-1"></i> Save</button>
+                    <button class="btn btn-outline-secondary btn-sm rounded-pill" type="reset">Reset</button>
+                </div>
+            </form>
         </div>
-      </div>
     </div>
-  </div>
+
+    <div class="col-12 col-lg-8">
+        <div class="card table-card border-0 shadow-sm bg-white">
+            <div class="card-header bg-white border-bottom py-3 d-flex flex-column flex-md-row gap-3 align-items-md-center justify-content-between">
+                <h5 class="mb-0 fw-bold text-dark">Category Directory</h5>
+                <div class="input-group search-input-group">
+                    <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" id="catSearch" class="form-control border-start-0" placeholder="Search by name...">
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <% if (categories.length === 0) { %>
+                    <div class="p-5 text-center text-muted">
+                        <i class="bi bi-tags-fill fs-2 d-block mb-2 text-muted"></i>
+                        No categories created yet. Compose your first one.
+                    </div>
+                <% } else { %>
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr class="table-light">
+                                <th class="py-3 px-4">Category Name</th>
+                                <th class="py-3">Description / Scope</th>
+                                <th class="py-3 px-4 text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="catTableBody">
+                            <% categories.forEach(cat => { %>
+                                <tr>
+                                    <td class="px-4"><span class="fw-bold text-dark"><%= cat.name %></span></td>
+                                    <td class="text-muted small"><%= cat.description || '—' %></td>
+                                    <td class="text-end px-4">
+                                        <div class="d-inline-flex gap-1">
+                                            <a href="/admin/edit-category/<%= cat._id %>" class="btn btn-sm btn-outline-secondary px-2.5 rounded-pill"><i class="bi bi-pencil-fill"></i></a>
+                                            <a href="/admin/delete-category/<%= cat._id %>" class="btn btn-sm btn-outline-danger px-2.5 rounded-pill" onclick="return confirm('Delete category? All exams inside will lose reference.')"><i class="bi bi-trash-fill"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                <% } %>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-  (function(){
+document.addEventListener('DOMContentLoaded', function() {
     const input = document.getElementById('catSearch');
-    if (!input) return;
-    input.addEventListener('input', function(){
-      const q = this.value.toLowerCase();
-      document.querySelectorAll('#catTableBody tr').forEach(tr => {
-        const text = tr.innerText.toLowerCase();
-        tr.style.display = text.includes(q) ? '' : 'none';
-      });
-    });
-    // Live updates for categories
+    const rows = document.querySelectorAll('#catTableBody tr');
+    if (input) {
+        input.addEventListener('input', function(){
+            const q = this.value.toLowerCase();
+            rows.forEach(tr => {
+                const text = tr.cells[0]?.textContent.toLowerCase() || '';
+                tr.style.display = text.includes(q) ? '' : 'none';
+            });
+        });
+    }
+
     try {
-      const socket = io();
-      socket.on('connect', function(){ socket.emit('join-admin'); });
-      socket.on('categories:update', function(){ location.reload(); });
+        const socket = io();
+        socket.on('connect', function(){ socket.emit('join-admin'); });
+        socket.on('categories:update', function(){ location.reload(); });
     } catch(e) {}
-  })();
+});
 </script>
+
 <%- include('../partials/footer') %>

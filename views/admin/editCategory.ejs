@@ -1,17 +1,28 @@
 <%- include('../partials/header', { title: 'Edit Category', messages: typeof messages !== 'undefined' ? messages : {}, user: typeof user !== 'undefined' ? user : null }) %>
-<div class="container py-4">
-  <h2>Edit Category</h2>
-  <form action="/admin/edit-category/<%= category._id %>" method="POST">
-    <div class="mb-3">
-      <label class="form-label">Name</label>
-      <input name="name" class="form-control" value="<%= category.name %>" required />
+
+<div class="row g-4 justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="card p-4 border-0 shadow-sm bg-white">
+            <h4 class="fw-bold mb-1 text-dark"><i class="bi bi-pencil-square text-primary me-2"></i>Edit Category</h4>
+            <p class="text-muted small mb-4">Rename the academic topic or modify its description.</p>
+            
+            <form action="/admin/edit-category/<%= category._id %>" method="POST" class="d-flex flex-column gap-3">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <div>
+                    <label class="form-label text-muted small fw-bold text-uppercase">Category Name</label>
+                    <input name="name" class="form-control bg-light" value="<%= category.name %>" required />
+                </div>
+                <div>
+                    <label class="form-label text-muted small fw-bold text-uppercase">Description</label>
+                    <textarea name="description" class="form-control bg-light" rows="3"><%= category.description %></textarea>
+                </div>
+                <div class="d-flex gap-2 justify-content-end mt-2">
+                    <a href="/admin/manage-categories" class="btn btn-outline-secondary btn-sm rounded-pill px-3">Cancel</a>
+                    <button class="btn btn-primary btn-sm rounded-pill px-3"><i class="bi bi-check-circle-fill me-1"></i> Save Changes</button>
+                </div>
+            </form>
+        </div>
     </div>
-    <div class="mb-3">
-      <label class="form-label">Description</label>
-      <textarea name="description" class="form-control"><%= category.description %></textarea>
-    </div>
-    <button class="btn btn-primary">Save</button>
-    <a href="/admin/manage-categories" class="btn btn-secondary">Cancel</a>
-  </form>
 </div>
+
 <%- include('../partials/footer') %>

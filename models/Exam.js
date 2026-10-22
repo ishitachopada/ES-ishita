@@ -40,6 +40,18 @@ const ExamSchema = new mongoose.Schema({
         type: Boolean,
         default: true
     },
+    assignToAll: {
+        type: Boolean,
+        default: true
+    },
+    passingPercentage: {
+        type: Number,
+        default: 60
+    },
+    assignedTo: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
     createdAt: {
         type: Date,
         default: Date.now

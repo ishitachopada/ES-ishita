@@ -1,146 +1,164 @@
 <%- include('../partials/header', { title: 'Submission Detail' }) %>
 
-<div class="row g-3 align-items-stretch mb-3">
+<% 
+    const isSubmitted = submission.status === 'submitted';
+    const totalPoints = submission.exam ? submission.exam.questions.reduce((sum, q) => sum + q.points, 0) : submission.totalQuestions;
+%>
+
+<div class="row g-4">
+    <!-- PAGE HEADER -->
     <div class="col-12">
-        <h2 class="mb-1"><i class="bi bi-clipboard-check"></i> Submission Detail</h2>
-        <p class="text-muted mb-0">Overview of a student's attempt with per-question results.</p>
-    </div>
-
-    <div class="col-12 col-sm-6 col-lg-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center gap-2 mb-1">
-                    <i class="bi bi-journal-text fs-4 text-primary"></i>
-                    <span class="text-muted">Exam</span>
-                </div>
-                <div class="fw-bold"><%= submission.exam ? submission.exam.title : '-' %></div>
-                <div class="text-muted"><%= submission.exam && submission.exam.subject ? submission.exam.subject : '' %></div>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-sm-6 col-lg-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center gap-2 mb-1">
-                    <i class="bi bi-person fs-4 text-info"></i>
-                    <span class="text-muted">Student</span>
-                </div>
-                <div class="fw-bold"><%= submission.student ? (submission.student.username || submission.student.email) : '-' %></div>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-sm-6 col-lg-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center gap-2 mb-1">
-                    <i class="bi bi-123 fs-4 text-success"></i>
-                    <span class="text-muted">Score</span>
-                </div>
-                <div class="fs-3 fw-bold"><span id="submission-total-score" data-submission-id="<%= submission._id %>"><%= submission.score %></span>/<%= submission.totalQuestions %></div>
-                <span class="badge <%= submission.status === 'submitted' ? 'bg-success' : 'bg-secondary' %>"><%= submission.status %></span>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-sm-6 col-lg-3">
-        <div class="card h-100">
-            <div class="card-body d-flex flex-column">
-                <div class="d-flex align-items-center gap-2 mb-2">
-                    <i class="bi bi-eye fs-4 <%= submission.exam && submission.exam.revealAnswersToStudents ? 'text-success' : 'text-secondary' %>"></i>
-                    <span class="text-muted">Student Answer Reveal</span>
-                </div>
-                <div class="form-check form-switch mt-auto">
-                    <input class="form-check-input" type="checkbox" id="toggleRevealAnswers" <%= submission.exam && submission.exam.revealAnswersToStudents ? 'checked' : '' %> onchange="toggleReveal('<%= submission.exam ? submission.exam._id : '' %>', this)">
-                    <label class="form-check-label" for="toggleRevealAnswers">Allow students to see correct answers</label>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-sm-6 col-lg-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center gap-2 mb-1">
-                    <i class="bi bi-clock-history fs-4 text-warning"></i>
-                    <span class="text-muted">Submitted</span>
-                </div>
-                <div class="fw-bold"><%= new Date(submission.submittedAt).toLocaleString() %></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="card">
-  <div class="card-body">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="card-title mb-0">Answers</h5>
-        <a href="/admin/exam-reports" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
-    </div>
-
-    <% submission.answers.forEach((ans, idx) => { %>
-      <div class="border rounded p-3 mb-3" data-answer-block data-answer-index="<%= idx %>">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-2 gap-2">
-            <div class="me-2">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-secondary">Q<%= idx + 1 %></span>
-                    <strong><%= ans.question ? ans.question.question : '' %></strong>
-                    <% if (ans.question && ans.question.points) { %>
-                        <span class="badge bg-light text-dark"><%= ans.question.points %> pts</span>
-                    <% } %>
-                </div>
-                <% if (ans.question && ans.question.type === 'image' && ans.question.imagePath) { %>
-                    <div class="mt-2"><img src="<%= ans.question.imagePath %>" class="img-fluid rounded border"></div>
-                <% } %>
-            </div>
-            <span class="badge <%= ans.isCorrect ? 'bg-success' : 'bg-danger' %>" data-answer-correct><%= ans.isCorrect ? 'Correct' : 'Wrong' %></span>
-        </div>
-
-        <% if (ans.selectedOption !== null && ans.selectedOption !== undefined && ans.question && Array.isArray(ans.question.options) && ans.question.options.length) { %>
-            <div class="row g-2">
-                <div class="col-12 col-md-6">
-                    <div class="p-2 bg-light rounded">
-                        <strong>Selected:</strong>
-                        <span><%= ans.question.options[ans.selectedOption] !== undefined ? ans.question.options[ans.selectedOption] : '-' %></span>
-                    </div>
-                </div>
-                <div class="col-12 col-md-6">
-                    <div class="p-2 bg-light rounded">
-                        <strong>Correct:</strong>
-                        <span><%= (ans.question.correctAnswer !== null && ans.question.correctAnswer !== undefined && ans.question.options[ans.question.correctAnswer] !== undefined) ? ans.question.options[ans.question.correctAnswer] : 'Not provided' %></span>
-                    </div>
-                </div>
-            </div>
-        <% } else { %>
-            <div class="row g-2">
-                <div class="col-12 col-md-6">
-                    <div class="p-2 bg-light rounded"><strong>Answer:</strong> <%= ans.textAnswer || '-' %></div>
-                </div>
-                <div class="col-12 col-md-6">
-                    <div class="p-2 bg-light rounded">
-                        <strong>Correct:</strong>
-                        <span>
-                            <% if (ans.question && Array.isArray(ans.question.acceptedAnswers) && ans.question.acceptedAnswers.length) { %>
-                                <%= ans.question.acceptedAnswers.join(', ') %>
-                            <% } else { %>
-                                Not provided
-                            <% } %>
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row g-2 mt-2">
+        <div class="card p-4 border-0 shadow-sm bg-white">
+            <div class="row align-items-center g-3">
                 <div class="col-12 col-md-8">
-                    <div class="d-flex gap-3 align-items-end flex-wrap">
-                        <div class="flex-grow-1">
-                            <label class="form-label">Set Manual Score (0 - <%= ans.question.points %>)</label>
-                            <input type="number" class="form-control" data-autosave-score min="0" max="<%= ans.question.points %>" step="0.1" value="<%= typeof ans.manualScore === 'number' ? ans.manualScore : '' %>" placeholder="Enter score">
+                    <h3 class="fw-bold mb-1 text-dark"><i class="bi bi-clipboard-check-fill text-primary me-2"></i>Submission Grading Sheet</h3>
+                    <p class="text-muted small mb-0">Overview of student attempt details, auto-graded marks, and manual grading panel.</p>
+                </div>
+                <div class="col-12 col-md-4 text-md-end">
+                    <a href="/admin/exam-reports" class="btn btn-outline-primary btn-sm px-3 rounded-pill"><i class="bi bi-arrow-left me-1"></i> Back to Reports</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- METRICS GRID -->
+    <div class="col-12">
+        <div class="row g-3">
+            <div class="col-12 col-md-4 col-lg-3">
+                <div class="stat-card border-start border-4 border-primary">
+                    <span class="stat-icon accent-primary" style="width:40px; height:40px; font-size:1.1rem;"><i class="bi bi-journal-text"></i></span>
+                    <div class="stat-info">
+                        <span class="stat-title text-uppercase tracking-wider" style="font-size:0.65rem;">Exam / Subject</span>
+                        <div class="fw-bold text-dark text-truncate" style="max-width: 180px;"><%= submission.exam ? submission.exam.title : '-' %></div>
+                        <span class="text-muted small"><%= submission.exam && submission.exam.subject ? submission.exam.subject : '' %></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 col-lg-3">
+                <div class="stat-card border-start border-4 border-info">
+                    <span class="stat-icon accent-info" style="width:40px; height:40px; font-size:1.1rem;"><i class="bi bi-person"></i></span>
+                    <div class="stat-info">
+                        <span class="stat-title text-uppercase tracking-wider" style="font-size:0.65rem;">Examinee Student</span>
+                        <div class="fw-bold text-dark text-truncate" style="max-width: 180px;"><%= submission.student ? (submission.student.username || submission.student.email) : '-' %></div>
+                        <span class="text-muted small">ID: <%= submission.student ? submission.student._id : '-' %></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 col-lg-3">
+                <div class="stat-card border-start border-4 border-success">
+                    <span class="stat-icon accent-success" style="width:40px; height:40px; font-size:1.1rem;"><i class="bi bi-award"></i></span>
+                    <div class="stat-info">
+                        <span class="stat-title text-uppercase tracking-wider" style="font-size:0.65rem;">Graded Score</span>
+                        <div class="fs-4 fw-bold text-success"><span id="submission-total-score" data-submission-id="<%= submission._id %>"><%= submission.score %></span> / <%= totalPoints %></div>
+                        <span class="badge <%= isSubmitted ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary' %> text-uppercase mt-1" style="font-size:0.7rem;"><%= submission.status %></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 col-lg-3">
+                <div class="stat-card border-start border-4 border-warning">
+                    <span class="stat-icon accent-warning" style="width:40px; height:40px; font-size:1.1rem;"><i class="bi bi-eye"></i></span>
+                    <div class="stat-info">
+                        <span class="stat-title text-uppercase tracking-wider" style="font-size:0.65rem;">Answer Reveal</span>
+                        <div class="form-check form-switch mt-1">
+                            <input class="form-check-input" type="checkbox" id="toggleRevealAnswers" <%= submission.exam && submission.exam.revealAnswersToStudents ? 'checked' : '' %> onchange="toggleReveal('<%= submission.exam ? submission.exam._id : '' %>', this)">
+                            <label class="form-check-label small text-muted" for="toggleRevealAnswers">Allow Reveal</label>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- ANSWERS CONTAINER -->
+    <div class="col-12">
+        <div class="card p-4 border-0 shadow-sm bg-white mb-4">
+            <h5 class="fw-bold mb-4 border-bottom pb-3 text-dark"><i class="bi bi-list-check text-primary me-2"></i>Grading worksheet</h5>
+            <div class="d-flex flex-column gap-3">
+                <% submission.answers.forEach((ans, idx) => { %>
+                    <div class="card shadow-sm border-start border-4 <%= ans.isCorrect ? 'border-success' : 'border-danger' %> p-3 bg-white" data-answer-block data-answer-index="<%= idx %>">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2 border-bottom pb-2">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <span class="badge bg-secondary-subtle text-secondary fw-semibold">QUESTION <%= idx + 1 %></span>
+                                <span class="badge bg-light text-dark fw-semibold"><%= ans.question ? ans.question.points : 1 %> pts</span>
+                                <p class="fw-bold text-dark mb-0 fs-6 ms-2"><%= ans.question ? ans.question.question : '' %></p>
+                            </div>
+                            <span class="badge <%= ans.isCorrect ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger' %>" data-answer-correct><%= ans.isCorrect ? 'Correct' : 'Wrong' %></span>
+                        </div>
+
+                        <% if (ans.question && ans.question.type === 'image' && ans.question.imagePath) { %>
+                            <div class="mb-3 text-center rounded border p-2 bg-light">
+                                <img src="<%= ans.question.imagePath %>" alt="Question Reference" class="img-fluid rounded shadow-sm" style="max-height: 200px;">
+                            </div>
+                        <% } %>
+
+                        <% if (ans.selectedOption !== null && ans.selectedOption !== undefined && ans.question && Array.isArray(ans.question.options) && ans.question.options.length) { %>
+                            <!-- MCQ OPTION COMPILATION -->
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded border bg-light <%= ans.isCorrect ? 'border-success-subtle text-success' : 'border-danger-subtle text-danger' %>">
+                                        <div class="small fw-semibold text-muted mb-1">Student Option Selected:</div>
+                                        <div class="fw-medium"><%= ans.question.options[ans.selectedOption] !== undefined ? ans.question.options[ans.selectedOption] : '-' %></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded border bg-light border-success-subtle text-success">
+                                        <div class="small fw-semibold text-muted mb-1">Correct Option:</div>
+                                        <div class="fw-medium"><%= (ans.question.correctAnswer !== null && ans.question.correctAnswer !== undefined && ans.question.options[ans.question.correctAnswer] !== undefined) ? ans.question.options[ans.question.correctAnswer] : 'Not provided' %></div>
+                                    </div>
+                                </div>
+                            </div>
+                        <% } else { %>
+                            <!-- OPEN TEXT OR IMAGE RESPONSE COMPILATION -->
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded border bg-light <%= ans.isCorrect ? 'border-success-subtle text-success' : 'border-danger-subtle text-danger' %> h-100">
+                                        <div class="small fw-semibold text-muted mb-1">Student Text Input:</div>
+                                        <div class="fw-medium"><%= ans.textAnswer || '—' %></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded border bg-light border-success-subtle text-success h-100">
+                                        <div class="small fw-semibold text-muted mb-1">Auto-grade Match Keywords:</div>
+                                        <div class="fw-medium">
+                                            <% if (ans.question && Array.isArray(ans.question.acceptedAnswers) && ans.question.acceptedAnswers.length) { %>
+                                                <%= ans.question.acceptedAnswers.join(', ') %>
+                                            <% } else { %>
+                                                Not provided
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Manual Score Input -->
+                            <div class="row g-2 mt-3 pt-3 border-top">
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label text-muted small fw-bold text-uppercase">Assign Manual Score (0 - <%= ans.question ? ans.question.points : 1 %> pts)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-pencil-square"></i></span>
+                                        <input type="number" class="form-control border-start-0 bg-light" data-autosave-score min="0" max="<%= ans.question ? ans.question.points : 1 %>" step="0.1" value="<%= typeof ans.manualScore === 'number' ? ans.manualScore : '' %>" placeholder="Enter score (autosaves in background)">
+                                    </div>
+                                </div>
+                            </div>
+                        <% } %>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTION LOGS BOTTOM BAR -->
+    <div class="col-12 d-flex gap-2 flex-wrap pb-4">
+        <a href="/admin/exam-reports" class="btn btn-secondary btn-sm rounded-pill px-3"><i class="bi bi-arrow-left"></i> Back to Reports</a>
+        <a href="/admin/manage-exams" class="btn btn-outline-primary btn-sm rounded-pill px-3"><i class="bi bi-gear-fill"></i> Manage Exams</a>
+        <% if (submission.status === 'invalidated') { %>
+            <form action="/admin/exam-reports/reset/<%= submission._id %>" method="POST" onsubmit="return confirm('Reset this submission to allow retake?')">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="btn btn-warning btn-sm rounded-pill px-3 text-dark" type="submit"><i class="bi bi-arrow-counterclockwise"></i> Reset submission for retake</button>
+            </form>
         <% } %>
-      </div>
-    <% }) %>
-  </div>
+    </div>
 </div>
 
 <script>
@@ -150,19 +168,15 @@ async function toggleReveal(examId, checkboxEl) {
         const res = await fetch(`/admin/exams/${examId}/toggle-reveal`, {
             method: 'POST',
             credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Accept': 'application/json',
+                'X-CSRF-Token': document.querySelector('input[name="_csrf"]')?.value || ''
+            },
             body: JSON.stringify({ reveal: checkboxEl.checked })
         });
-        if (!res.ok) {
-            checkboxEl.checked = !checkboxEl.checked;
-            return;
-        }
-        const contentType = res.headers.get('content-type') || '';
-        if (!contentType.includes('application/json')) {
-            checkboxEl.checked = !checkboxEl.checked;
-            return;
-        }
-        const data = await res.json();
+        if (!res.ok) { checkboxEl.checked = !checkboxEl.checked; return; }
+        const data = await res.json().catch(() => null);
         if (!data || !data.ok) checkboxEl.checked = !checkboxEl.checked;
     } catch (e) {
         checkboxEl.checked = !checkboxEl.checked;
@@ -171,17 +185,3 @@ async function toggleReveal(examId, checkboxEl) {
     }
 }
 </script>
-
-<div class="mt-3 d-flex gap-2 flex-wrap">
-  <a href="/admin/exam-reports" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back to Reports</a>
-  <a href="/admin/manage-exams" class="btn btn-outline-primary"><i class="bi bi-gear"></i> Manage Exams</a>
-  <% if (submission.status === 'invalidated') { %>
-    <form action="/admin/exam-reports/reset/<%= submission._id %>" method="POST" onsubmit="return confirm('Reset this submission to allow retake?')">
-        <button class="btn btn-warning" type="submit"><i class="bi bi-arrow-counterclockwise"></i> Reset for Retake</button>
-    </form>
-  <% } %>
-</div>
-
-<%- include('../partials/footer') %>
-
-

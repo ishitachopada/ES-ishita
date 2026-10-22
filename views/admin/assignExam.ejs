@@ -1,0 +1,66 @@
+<%- include('../partials/header', { title: 'Assign Exam' }) %>
+
+<div class="row g-4 justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="card border-0 shadow-sm bg-white">
+            <div class="card-body p-4 p-md-5">
+                <div class="mb-4">
+                    <h3 class="fw-bold mb-2 text-dark"><i class="bi bi-person-check text-primary me-2"></i>Assign Exam: <%= exam.title %></h3>
+                    <p class="text-muted small mb-0">Select which students are allowed to take this exam.</p>
+                </div>
+
+                <form action="/admin/assign-exam/<%= exam._id %>?_csrf=<%= csrfToken %>" method="POST">
+                    
+                    <div class="mb-4 p-3 border rounded bg-light">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="assignToAll" name="assignToAll" value="true" <%= exam.assignToAll ? 'checked' : '' %>>
+                            <label class="form-check-label fw-bold" for="assignToAll">Assign to All Students</label>
+                            <div class="form-text mt-1">If enabled, all students can access this exam. If disabled, you must select specific students below.</div>
+                        </div>
+                    </div>
+
+                    <div id="studentListContainer" class="<%= exam.assignToAll ? 'd-none' : '' %> mb-4">
+                        <h5 class="fw-bold text-dark mb-3">Select Students</h5>
+                        <div class="list-group">
+                            <% if (students && students.length > 0) { %>
+                                <% students.forEach(student => { %>
+                                    <label class="list-group-item d-flex gap-3 align-items-center">
+                                        <input class="form-check-input flex-shrink-0" type="checkbox" name="assignedTo" value="<%= student._id %>" <%= (!exam.assignToAll && exam.assignedTo && exam.assignedTo.includes(student._id)) ? 'checked' : '' %>>
+                                        <span class="pt-1 form-checked-content">
+                                            <strong><%= student.username %></strong>
+                                            <small class="d-block text-muted"><%= student.email %></small>
+                                        </span>
+                                    </label>
+                                <% }); %>
+                            <% } else { %>
+                                <div class="text-muted small">No students found.</div>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 border-top pt-4">
+                        <a href="/admin/manage-exams" class="btn btn-outline-secondary px-4 rounded-pill">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4 rounded-pill"><i class="bi bi-save me-1"></i> Save Assignments</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const assignToAllCheckbox = document.getElementById('assignToAll');
+        const studentListContainer = document.getElementById('studentListContainer');
+
+        assignToAllCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                studentListContainer.classList.add('d-none');
+            } else {
+                studentListContainer.classList.remove('d-none');
+            }
+        });
+    });
+</script>
+
+<%- include('../partials/footer') %>

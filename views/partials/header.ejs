@@ -3,20 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exam System - <%= title || 'Home' %></title>
+    <title>ExamSystem - <%= typeof title !== 'undefined' ? title : 'Secure Assessment Portal' %></title>
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/css/style.css">
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- CSRF token for JS fetch requests -->
+    <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+
     <% if (typeof SOCKET_IO !== 'undefined' && SOCKET_IO) { %>
     <script src="/socket.io/socket.io.js"></script>
     <script>
       (function(){
         try {
           window.__appSocket = io();
-          <% if (user) { %>
+          <% if (typeof user !== 'undefined' && user) { %>
             window.__appSocket.emit('join-user', '<%= user._id %>');
           <% } %>
         } catch(e) {}
@@ -24,82 +33,292 @@
     </script>
     <% } %>
 </head>
-<% const isAdminLayout = typeof layout !== 'undefined' && layout === 'admin'; %>
-<% const activeNavKey = typeof activeNav !== 'undefined' ? activeNav : ''; %>
-<body class="has-topbar <%= isAdminLayout ? 'admin-layout' : '' %>">
-    <nav class="navbar navbar-expand-lg topbar sticky-top shadow-sm">
-        <div class="container-fluid px-4">
-            <div class="d-flex align-items-center gap-2">
-                <% if (isAdminLayout) { %>
-                    <button class="btn btn-outline-light btn-sm d-lg-none sidebar-toggle" type="button" data-sidebar-toggle>
-                        <i class="bi bi-list"></i>
-                    </button>
-                <% } %>
-                <a class="navbar-brand d-flex align-items-center gap-2" href="/">
-                    <i class="bi bi-mortarboard-fill fs-4"></i>
-                    <span class="fw-semibold">ExamSystem</span>
+
+<% 
+  const isUserLoggedIn = typeof user !== 'undefined' && user !== null;
+  const userRole = isUserLoggedIn ? user.role : null;
+  const isPageAdminLayout = typeof layout !== 'undefined' && layout === 'admin';
+  const activeNavItem = typeof activeNav !== 'undefined' ? activeNav : '';
+  const currentTitle = typeof title !== 'undefined' ? title : 'Home';
+  const isExamPage = currentTitle.toLowerCase().includes('taking exam');
+  const isAuthPage = ['login', 'register', 'forgot', 'reset', 'verify otp', 'verify-otp', 'session ended', 'sessionended', 'error'].some(x => currentTitle.toLowerCase().includes(x));
+%>
+
+<body class="<%= isUserLoggedIn ? 'portal-layout' : 'guest-layout' %>">
+    
+    <% if (isUserLoggedIn && !isExamPage) { %>
+    <!-- FULL PORTAL LAYOUT WITH SIDEBAR -->
+    <div class="admin-shell d-flex w-100">
+        
+        <!-- SIDEBAR -->
+        <aside class="admin-sidebar bg-white border-end shadow-sm flex-shrink-0 d-flex flex-column" style="width: 270px; height: 100vh; position: sticky; top: 0; z-index: 1000;">
+            <div class="sidebar-header p-4 d-flex align-items-center gap-3">
+                <div class="bg-primary rounded p-2 d-flex align-items-center justify-content-center shadow-sm">
+                    <i class="bi bi-mortarboard-fill fs-5 text-white"></i>
+                </div>
+                <span class="fs-5 fw-bold text-dark sidebar-title" style="font-family: 'Outfit', sans-serif; letter-spacing: 0.5px;">ExamSystem</span>
+            </div>
+            
+            <style>
+                .sidebar-link {
+                    display: flex; align-items: center; padding: 0.85rem 1.25rem; color: #475569; border-radius: 50rem; text-decoration: none; font-weight: 500; transition: all 0.2s ease; margin-bottom: 0.4rem; font-size: 0.95rem; margin-inline: 1rem;
+                }
+                .sidebar-link i { font-size: 1.15rem; }
+                .sidebar-link:hover {
+                    color: #2563eb; background: #f1f5f9;
+                }
+                .sidebar-link.active {
+                    color: #ffffff; background: #2563eb; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+                }
+                .sidebar-link.active i { color: #ffffff; }
+                .sidebar-link.text-danger:hover {
+                    background: #fef2f2; color: #ef4444 !important;
+                }
+            </style>
+            
+            <div class="sidebar-menu py-2 flex-grow-1 overflow-y-auto mt-1">
+                <div class="text-uppercase fw-bold mb-3 px-4" style="font-size: 0.7rem; letter-spacing: 1.2px; color: #94a3b8;">Main Menu</div>
+                <div class="d-flex flex-column">
+                    <% if (userRole === 'admin' || userRole === 'faculty') { %>
+                        <a href="/admin/dashboard" class="sidebar-link <%= activeNavItem === 'admin' && currentTitle.toLowerCase().includes('dashboard') ? 'active' : '' %>">
+                            <i class="bi bi-speedometer2 me-3"></i> Dashboard
+                        </a>
+                        <a href="/admin/manage-exams" class="sidebar-link <%= activeNavItem === 'admin' && currentTitle.toLowerCase().includes('manage exams') ? 'active' : '' %>">
+                            <i class="bi bi-file-earmark-text me-3"></i> Manage Exams
+                        </a>
+                        <a href="/admin/exam-reports" class="sidebar-link <%= activeNavItem === 'admin' && currentTitle.toLowerCase().includes('reports') ? 'active' : '' %>">
+                            <i class="bi bi-bar-chart me-3"></i> Reports
+                        </a>
+                        <a href="/admin/manage-categories" class="sidebar-link <%= activeNavItem === 'admin' && currentTitle.toLowerCase().includes('categories') ? 'active' : '' %>">
+                            <i class="bi bi-tags me-3"></i> Categories
+                        </a>
+                        <% if (userRole === 'admin') { %>
+                        <a href="/admin/manage-faculty" class="sidebar-link <%= activeNavItem === 'admin' && currentTitle.toLowerCase().includes('faculty') ? 'active' : '' %>">
+                            <i class="bi bi-person-badge me-3"></i> Faculty
+                        </a>
+                        <% } %>
+                        <a href="/admin/invalidated" class="sidebar-link <%= activeNavItem === 'admin' && currentTitle.toLowerCase().includes('invalidated') ? 'active' : '' %>">
+                            <i class="bi bi-exclamation-triangle me-3"></i> Invalidated
+                        </a>
+                        <a href="/admin/notifications" class="sidebar-link <%= activeNavItem === 'admin' && currentTitle.toLowerCase().includes('notification') ? 'active' : '' %>">
+                            <i class="bi bi-bell-fill me-3"></i> Notifications
+                        </a>
+                    <% } else { %>
+                        <a href="/exams#dashboard" class="sidebar-link <%= activeNavItem === 'exams' && currentTitle.toLowerCase().includes('dashboard') ? 'active' : '' %>">
+                            <i class="bi bi-grid-1x2 me-3"></i> Dashboard
+                        </a>
+                        <a href="/exams#my-exams" class="sidebar-link <%= activeNavItem === 'exams' && currentTitle.toLowerCase().includes('my exams') ? 'active' : '' %>">
+                            <i class="bi bi-journal-text me-3"></i> My Exams
+                        </a>
+                        <a href="/exams#live-exams" class="sidebar-link <%= activeNavItem === 'exams' && currentTitle.toLowerCase().includes('live exams') ? 'active' : '' %>">
+                            <i class="bi bi-play-circle me-3"></i> Live Exams
+                        </a>
+                        <a href="/exams#performance" class="sidebar-link <%= activeNavItem === 'exams' && currentTitle.toLowerCase().includes('results') ? 'active' : '' %>">
+                            <i class="bi bi-award me-3"></i> Results
+                        </a>
+                        <a href="/exams#certificates" class="sidebar-link <%= activeNavItem === 'exams' && currentTitle.toLowerCase().includes('certificate') ? 'active' : '' %>">
+                            <i class="bi bi-patch-check me-3"></i> Certificates
+                        </a>
+                        <a href="/exams#notifications" class="sidebar-link <%= activeNavItem === 'exams' && currentTitle.toLowerCase().includes('notification') ? 'active' : '' %>">
+                            <i class="bi bi-bell me-3"></i> Notifications
+                        </a>
+                    <% } %>
+                </div>
+            </div>
+            
+            <div class="py-4 border-top mt-auto text-center">
+                <a href="/logout" class="sidebar-link text-danger d-inline-flex justify-content-center mx-auto" style="width: calc(100% - 2rem);">
+                    <i class="bi bi-box-arrow-right me-2 text-danger"></i> Logout
                 </a>
             </div>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="mainNav">
-                <ul class="navbar-nav me-auto align-items-lg-center">
-                    <li class="nav-item">
-                        <a class="nav-link <%= activeNavKey === 'home' ? 'active' : '' %>" href="/">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <%= activeNavKey === 'exams' ? 'active' : '' %>" href="/exams">Exams</a>
-                    </li>
-                    <% if (user && user.role === 'admin') { %>
-                    <li class="nav-item">
-                        <a class="nav-link <%= activeNavKey === 'admin' ? 'active' : '' %>" href="/admin/dashboard">Admin</a>
-                    </li>
-                    <% } %>
-                </ul>
-                <ul class="navbar-nav ms-auto">
-                    <% if (user) { %>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <span class="avatar-circle">
-                                    <i class="bi bi-person"></i>
-                                </span>
-                                <span class="fw-medium"><%= user.username %></span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                                <li><a class="dropdown-item" href="/profile">Profile</a></li>
-                                <li><a class="dropdown-item" href="/settings">Settings</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" href="/logout">Logout</a></li>
-                            </ul>
-                        </li>
-                    <% } else { %>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/login">Login</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/register">Register</a>
-                        </li>
-                    <% } %>
-                </ul>
-            </div>
-        </div>
-    </nav>
+        </aside>
 
-    <main class="<%= isAdminLayout ? 'admin-main' : 'page-main container py-5' %>">
-        <% if (messages && messages.error && messages.error.length > 0) { %>
-            <div class="<%= isAdminLayout ? 'container-fluid px-4 pt-4' : '' %>">
-                <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-                    <%= messages.error[0] %>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <!-- MAIN CONTENT AREA -->
+        <main class="admin-content flex-grow-1 d-flex flex-column" style="min-width: 0; min-height: 100vh;">
+            
+            <!-- TOP NAVBAR -->
+            <nav class="navbar navbar-expand bg-white border-bottom shadow-sm px-4 py-3 sticky-top" style="z-index: 900;">
+                <div class="d-flex w-100 justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-3">
+                        <button class="btn btn-light btn-sm d-md-none"><i class="bi bi-list"></i></button>
+                        <h5 class="mb-0 fw-bold text-dark d-none d-md-block">
+                            <span class="text-primary"><%= userRole === 'student' ? 'Student Portal' : 'Admin' %></span> / <%= currentTitle %>
+                        </h5>
+                    </div>
+                    
+                    <div class="d-flex align-items-center gap-3">
+                        <!-- Notifications -->
+                        <div class="dropdown">
+                            <button class="btn btn-light position-relative p-2 rounded-circle border-0 text-muted" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-bell-fill fs-5"></i>
+                                <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="margin-top: 5px; margin-left: -5px; font-size: 0.65rem;">
+                                    0
+                                </span>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg border-0" aria-labelledby="notificationDropdown" style="width: 320px; border-radius:12px;">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0 fw-bold text-dark">Notifications</h6>
+                                    <button class="btn btn-sm btn-link text-decoration-none text-primary fw-semibold p-0" id="clearNotificationsBtn" style="display: none;">Clear All</button>
+                                </div>
+                                <hr class="dropdown-divider mb-2">
+                                <div id="notificationList" class="d-flex flex-column gap-2" style="max-height: 300px; overflow-y: auto;">
+                                    <div class="text-center text-muted small py-4 bg-light rounded" id="noNotificationsMsg">
+                                        <i class="bi bi-bell-slash fs-4 d-block mb-1"></i>
+                                        No new notifications
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="dropdown">
+                            <button class="btn btn-light rounded-pill px-3 py-1 border d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
+                                <% if (user.profileImage) { %>
+                                <img src="<%= user.profileImage %>" alt="avatar"
+                                     style="width:28px; height:28px; border-radius:50%; object-fit:cover;">
+                                <% } else { %>
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; font-size: 0.8rem;">
+                                    <%= user.username.substring(0, 2).toUpperCase() %>
+                                </div>
+                                <% } %>
+                                <span class="fw-semibold text-dark"><%= user.username %></span>
+                                <i class="bi bi-chevron-down ms-1 small"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2 rounded-3">
+                                <li><a class="dropdown-item py-2" href="/profile"><i class="bi bi-person me-2"></i>Profile</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item py-2 text-danger" href="/logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
+            </nav>
+            
+            <div class="admin-content-inner flex-grow-1 bg-light p-4">
+    <% } else if (isAuthPage) { %>
+        <main class="w-100 h-100 p-0 m-0 bg-white">
+    <% } else { %>
+        <!-- GUEST / EXAM LAYOUT -->
+        <nav class="navbar navbar-expand bg-white border-bottom shadow-sm px-4 py-3 sticky-top">
+            <div class="container-fluid">
+                <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+                    <i class="bi bi-mortarboard-fill fs-3 text-primary"></i>
+                    <span class="fs-4 fw-bold text-dark" style="font-family: 'Outfit', sans-serif;">ExamSystem</span>
+                </a>
+                <% if (!isExamPage) { %>
+                <div class="d-flex gap-2">
+                    <a href="/login" class="btn btn-outline-primary fw-semibold px-4 rounded-pill">Log In</a>
+                    <a href="/register" class="btn btn-primary fw-semibold px-4 rounded-pill">Sign Up</a>
+                </div>
+                <% } else if (isUserLoggedIn && isExamPage) { %>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-bold"><i class="bi bi-record-circle me-1"></i> LIVE EXAM IN PROGRESS</span>
+                        <div class="bg-light px-3 py-1 rounded-pill fw-semibold border text-dark ms-2"><%= user.username %></div>
+                    </div>
+                <% } %>
+            </div>
+        </nav>
+        <main class="page-main <%= isExamPage ? 'w-100 p-0 m-0' : 'container py-5' %>" style="<%= isExamPage ? 'height: calc(100vh - 70px); overflow: hidden;' : 'min-height: calc(100vh - 70px);' %>">
+    <% } %>
+
+    <!-- Flash Messages -->
+    <div class="container-fluid <%= (isUserLoggedIn && !isExamPage) ? 'pt-0' : '' %>">
+        <% if (messages && messages.error && messages.error.length > 0) { %>
+            <div class="alert alert-danger border-0 border-start border-4 border-danger shadow-sm alert-dismissible fade show mt-3 mb-4 rounded-3" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> <%= messages.error[0] %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <% } %>
         <% if (messages && messages.success && messages.success.length > 0) { %>
-            <div class="<%= isAdminLayout ? 'container-fluid px-4 pt-4' : '' %>">
-                <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-                    <%= messages.success[0] %>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
+            <div class="alert alert-success border-0 border-start border-4 border-success shadow-sm alert-dismissible fade show mt-3 mb-4 rounded-3" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> <%= messages.success[0] %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <% } %>
+    </div>
+
+    <% if (isUserLoggedIn) { %>
+    <!-- Notification Client Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const badge = document.getElementById('notificationBadge');
+            const list = document.getElementById('notificationList');
+            const clearBtn = document.getElementById('clearNotificationsBtn');
+            const noMsg = document.getElementById('noNotificationsMsg');
+            
+            if (!badge || !list || !clearBtn) return; // FIX APPLIED HERE
+
+            let unreadCount = parseInt(badge.innerText) || 0;
+
+            function updateBadge() {
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                    badge.classList.remove('d-none');
+                    clearBtn.style.display = 'block';
+                    if (noMsg) noMsg.style.display = 'none';
+                } else {
+                    badge.classList.add('d-none');
+                    clearBtn.style.display = 'none';
+                    if (noMsg) noMsg.style.display = 'block';
+                }
+            }
+
+            function createNotificationItem(notif) {
+                const div = document.createElement('div');
+                div.className = 'p-3 bg-white border border-light shadow-sm rounded mb-2 text-start';
+                let iconClass = 'text-primary';
+                if (notif.category === 'exam') iconClass = 'text-success';
+                else if (notif.category === 'urgent') iconClass = 'text-danger';
+                
+                div.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="fw-bold ${iconClass} small text-uppercase">${notif.category || 'Notification'}</span>
+                        <small class="text-muted" style="font-size: 0.7rem;">${new Date(notif.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
+                    </div>
+                    <div class="fw-bold text-dark mb-1">${notif.title}</div>
+                    <p class="mb-0 text-muted small">${notif.body}</p>
+                `;
+                return div;
+            }
+
+            fetch('/exams/api/notifications')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.notifications) {
+                        unreadCount = data.notifications.length;
+                        data.notifications.forEach(notif => {
+                            list.appendChild(createNotificationItem(notif));
+                        });
+                        updateBadge();
+                    }
+                })
+                .catch(err => console.error('Error fetching notifications:', err));
+
+            clearBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                fetch('/exams/api/notifications/clear', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'CSRF-Token': '<%= typeof csrfToken !== "undefined" ? csrfToken : "" %>'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        unreadCount = 0;
+                        list.innerHTML = '<div class="text-center text-muted small py-4 bg-light rounded" id="noNotificationsMsg"><i class="bi bi-bell-slash fs-4 d-block mb-1"></i>No new notifications</div>';
+                        updateBadge();
+                    }
+                });
+            });
+
+            if (window.__appSocket) {
+                window.__appSocket.on('new-notification', (notif) => {
+                    unreadCount++;
+                    list.insertBefore(createNotificationItem(notif), list.firstChild);
+                    updateBadge();
+                });
+            }
+        });
+    </script>
+    <% } %>

@@ -1,499 +1,350 @@
-<%- include('../partials/header', { title: 'Admin Dashboard', layout: 'admin', activeNav: 'admin' }) %>
+<%- include('../partials/header', { title: 'Admin Dashboard', activeNav: 'admin' }) %>
 
-<div class="admin-shell">
-    <div class="admin-sidebar-backdrop" id="sidebarBackdrop"></div>
-    <aside class="admin-sidebar" id="adminSidebar">
-        <div class="sidebar-header">
-            <span class="sidebar-title text-uppercase">Admin Panel</span>
-            <button class="collapse-btn d-none d-lg-inline-flex" type="button" data-sidebar-collapse>
-                <i class="bi bi-chevron-left"></i>
-            </button>
-        </div>
-        <nav class="sidebar-menu">
-            <a href="/admin/dashboard" class="active">
-                <i class="bi bi-speedometer2"></i>
-                <span class="sidebar-text">Dashboard</span>
-            </a>
-            <a href="/admin/manage-exams">
-                <i class="bi bi-journal-text"></i>
-                <span class="sidebar-text">Manage Exams</span>
-            </a>
-            <a href="/admin/exam-reports">
-                <i class="bi bi-inboxes"></i>
-                <span class="sidebar-text">Submissions</span>
-            </a>
-            <a href="/admin/manage-categories">
-                <i class="bi bi-tags"></i>
-                <span class="sidebar-text">Categories</span>
-            </a>
-            <a href="/admin/exam-reports">
-                <i class="bi bi-graph-up-arrow"></i>
-                <span class="sidebar-text">Reports</span>
-            </a>
-            <a href="/settings">
-                <i class="bi bi-sliders"></i>
-                <span class="sidebar-text">Settings</span>
-            </a>
-            <a href="/logout" class="logout-link">
-                <i class="bi bi-box-arrow-right"></i>
-                <span class="sidebar-text">Logout</span>
-            </a>
-        </nav>
-    </aside>
+<% 
+    const safeExams = exams || 0;
+    const safeSubmissions = submissions || 0;
+    const safeCategories = categories || 0;
+    const totalRecent = Array.isArray(recentExams) ? recentExams.length : 0;
+    const activeCount = Array.isArray(recentExams) ? recentExams.filter(e => e.isActive).length : 0;
+    const inactiveCount = Math.max(totalRecent - activeCount, 0);
+    const activeRatio = totalRecent ? Math.round((activeCount / totalRecent) * 100) : 0;
+    const submissionRatio = safeExams ? Math.min(100, Math.round((safeSubmissions / safeExams) * 12)) : Math.min(100, safeSubmissions * 5);
+    const categoryCoverage = safeExams ? Math.min(100, Math.round((safeCategories / safeExams) * 20) + 20) : Math.min(100, safeCategories * 8);
+%>
 
-    <section class="admin-content">
-        <div class="admin-content-inner">
-            <% 
-                const safeExams = exams || 0;
-                const safeSubmissions = submissions || 0;
-                const safeCategories = categories || 0;
-                const totalRecent = Array.isArray(recentExams) ? recentExams.length : 0;
-                const activeCount = Array.isArray(recentExams) ? recentExams.filter(e => e.isActive).length : 0;
-                const inactiveCount = Math.max(totalRecent - activeCount, 0);
-                const activeRatio = totalRecent ? Math.round((activeCount / totalRecent) * 100) : 0;
-                const submissionRatio = safeExams ? Math.min(100, Math.round((safeSubmissions / safeExams) * 12)) : Math.min(100, safeSubmissions * 5);
-                const categoryCoverage = safeExams ? Math.min(100, Math.round((safeCategories / safeExams) * 20) + 20) : Math.min(100, safeCategories * 8);
-            %>
-            <div class="dashboard-stack">
-                <section class="dashboard-hero">
-                    <div class="dashboard-hero-content">
-                        <div class="d-flex flex-wrap align-items-center gap-3">
-                            <span class="hero-badge d-inline-flex align-items-center gap-2">
-                                <i class="bi bi-shield-check"></i> Control Center
-                            </span>
-                            <span class="insight-pill d-none d-sm-inline-flex">
-                                <i class="bi bi-lightning-charge"></i> System running smoothly
-                            </span>
-                            <button class="btn btn-outline-light btn-sm d-none d-lg-inline-flex ms-lg-auto" type="button" data-sidebar-collapse>
-                                <i class="bi bi-layout-sidebar-inset"></i> Toggle sidebar
-                            </button>
-                        </div>
-                        <div>
-                            <h1>Welcome back, Admin</h1>
-                            <p>Orchestrate exams, track submissions, and launch new assessments with a single click. Your entire evaluation ecosystem is at your fingertips.</p>
-                        </div>
-                        <div class="hero-actions">
-                            <a href="/admin/create-exam" class="btn btn-light text-primary fw-semibold">
-                                <i class="bi bi-plus-circle me-2"></i>New Exam
-                            </a>
-                            <a href="/admin/manage-exams" class="btn btn-outline-light fw-semibold">
-                                <i class="bi bi-collection me-2"></i>Manage Library
-                            </a>
-                            <a href="/admin/exam-reports" class="btn btn-outline-light fw-semibold">
-                                <i class="bi bi-bar-chart-line me-2"></i>View Reports
-                            </a>
-                        </div>
-                        <div class="hero-metrics">
-                            <div class="hero-metric">
-                                <span class="label">Active Exams</span>
-                                <span class="value"><%= activeCount %></span>
-                            </div>
-                            <div class="hero-metric">
-                                <span class="label">Pending Review</span>
-                                <span class="value"><%= inactiveCount %></span>
-                            </div>
-                            <div class="hero-metric">
-                                <span class="label">Submissions</span>
-                                <span class="value"><%= submissions %></span>
-                            </div>
-                            <div class="hero-metric">
-                                <span class="label">Categories</span>
-                                <span class="value"><%= categories %></span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="metric-grid">
-                    <div class="metric-card">
-                        <span class="metric-icon bg-primary-subtle text-primary">
-                            <i class="bi bi-kanban"></i>
-                        </span>
-                        <div class="position-relative">
-                            <span class="metric-title">Total Exams</span>
-                            <div class="metric-value"><%= exams %></div>
-                            <p class="metric-subtext mb-0">Across <%= categories %> categories curated by faculty partners.</p>
-                        </div>
-                    </div>
-                    <div class="metric-card">
-                        <span class="metric-icon bg-success-subtle text-success">
-                            <i class="bi bi-clipboard2-check"></i>
-                        </span>
-                        <div class="position-relative">
-                            <span class="metric-title">Submissions Processed</span>
-                            <div class="metric-value"><%= submissions %></div>
-                            <p class="metric-subtext mb-0">Learners completed the latest assessments in record time.</p>
-                        </div>
-                    </div>
-                    <div class="metric-card">
-                        <span class="metric-icon bg-info-subtle text-info">
-                            <i class="bi bi-layers"></i>
-                        </span>
-                        <div class="position-relative">
-                            <span class="metric-title">Weighted Categories</span>
-                            <div class="metric-value"><%= categories %></div>
-                            <p class="metric-subtext mb-0">Maintain quality by reviewing topics and publishing updates.</p>
-                        </div>
-                    </div>
-                    <div class="metric-card">
-                        <span class="metric-icon bg-warning-subtle text-warning">
-                            <i class="bi bi-activity"></i>
-                        </span>
-                        <div class="position-relative">
-                            <span class="metric-title">Active Ratio</span>
-                            <div class="d-flex align-items-end justify-content-between gap-2">
-                                <div class="metric-value"><%= activeRatio %>%</div>
-                                <span class="text-muted small">vs <%= totalRecent %> recent</span>
-                            </div>
-                            <div class="progress mt-2">
-                                <div class="progress-bar bg-warning" role="progressbar" style="width: <%= activeRatio %>%;" aria-valuenow="<%= activeRatio %>" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="row g-4 align-items-stretch">
-                    <div class="col-12 col-xxl-7">
-                        <div class="glass-card quick-actions h-100">
-                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
-                                <h5 class="mb-0">Quick Command Center</h5>
-                                <span class="insight-pill"><i class="bi bi-lightning-charge-fill"></i> 1-click workflows</span>
-                            </div>
-                            <div class="row g-3">
-                                <div class="col-sm-6">
-                                    <a href="/admin/create-exam" class="btn btn-outline-primary btn-action">
-                                        <div>
-                                            <div class="fw-semibold text-primary">Launch a new exam</div>
-                                            <div class="text-muted small">Use templates &amp; question banks</div>
-                                        </div>
-                                        <span class="cta-icon"><i class="bi bi-arrow-up-right"></i></span>
-                                    </a>
-                                </div>
-                                <div class="col-sm-6">
-                                    <a href="/admin/manage-exams" class="btn btn-outline-primary btn-action">
-                                        <div>
-                                            <div class="fw-semibold text-primary">Curate exam library</div>
-                                            <div class="text-muted small">Activate, archive or duplicate</div>
-                                        </div>
-                                        <span class="cta-icon"><i class="bi bi-collection"></i></span>
-                                    </a>
-                                </div>
-                                <div class="col-sm-6">
-                                    <a href="/admin/manage-categories" class="btn btn-outline-primary btn-action">
-                                        <div>
-                                            <div class="fw-semibold text-primary">Refine categories</div>
-                                            <div class="text-muted small">Realign topics and teams</div>
-                                        </div>
-                                        <span class="cta-icon"><i class="bi bi-tags"></i></span>
-                                    </a>
-                                </div>
-                                <div class="col-sm-6">
-                                    <a href="/admin/exam-reports" class="btn btn-outline-primary btn-action">
-                                        <div>
-                                            <div class="fw-semibold text-primary">Analyse performance</div>
-                                            <div class="text-muted small">Dive into submissions &amp; stats</div>
-                                        </div>
-                                        <span class="cta-icon"><i class="bi bi-graph-up-arrow"></i></span>
-                                    </a>
-                                </div>
-                            </div>
-                            <ul class="list-unstyled quick-summary mb-0">
-                                <li>Active vs Inactive <span><%= activeCount %> active · <%= inactiveCount %> inactive</span></li>
-                                <li>Total exams published <span><%= exams %></span></li>
-                                <li>Pending actions <span><%= inactiveCount > 0 ? inactiveCount + ' exams awaiting launch' : 'All caught up' %></span></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-12 col-xxl-5">
-                        <div class="glass-card performance-card h-100">
-                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
-                                <h5 class="mb-0">Performance Snapshot</h5>
-                                <span class="insight-pill"><i class="bi bi-activity"></i> Live metrics</span>
-                            </div>
-                            <div class="progress-item">
-                                <div class="progress-label">
-                                    <span>Engagement throughput</span>
-                                    <span><%= submissionRatio %>%</span>
-                                </div>
-                                <div class="progress bg-primary-subtle">
-                                    <div class="progress-bar bg-primary" role="progressbar" style="width: <%= submissionRatio %>%;" aria-valuenow="<%= submissionRatio %>" aria-valuemin="0" aria-valuemax="100"></div>
-                                </div>
-                            </div>
-                            <div class="progress-item">
-                                <div class="progress-label">
-                                    <span>Operational readiness</span>
-                                    <span><%= activeRatio %>%</span>
-                                </div>
-                                <div class="progress bg-success-subtle">
-                                    <div class="progress-bar bg-success" role="progressbar" style="width: <%= activeRatio %>%;" aria-valuenow="<%= activeRatio %>" aria-valuemin="0" aria-valuemax="100"></div>
-                                </div>
-                            </div>
-                            <div class="progress-item">
-                                <div class="progress-label">
-                                    <span>Category coverage</span>
-                                    <span><%= categoryCoverage %>%</span>
-                                </div>
-                                <div class="progress bg-info-subtle">
-                                    <div class="progress-bar bg-info" role="progressbar" style="width: <%= categoryCoverage %>%;" aria-valuenow="<%= categoryCoverage %>" aria-valuemin="0" aria-valuemax="100"></div>
-                                </div>
-                            </div>
-                            <p class="text-muted small mt-4 mb-0">Keep boosting engagement by activating upcoming exams and refreshing category content weekly.</p>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="row g-4">
-                    <div class="col-12 col-xxl-7">
-                        <div class="table-card card">
-                            <div class="card-header">
-                                <div class="d-flex flex-column flex-xl-row gap-3 align-items-xl-center justify-content-between">
-                                    <div>
-                                        <h5 class="card-title mb-1">Exam Explorer</h5>
-                                        <p class="text-muted small mb-0">Scan and filter the latest activity across your published exams.</p>
-                                    </div>
-                                    <div class="d-flex flex-column flex-md-row gap-3 align-items-md-center">
-                                        <div class="tab-filters">
-                                            <button type="button" class="btn-pill active" data-status-filter data-status="">All</button>
-                                            <button type="button" class="btn-pill" data-status-filter data-status="active">Active</button>
-                                            <button type="button" class="btn-pill" data-status-filter data-status="inactive">Inactive</button>
-                                        </div>
-                                        <div class="input-group" style="max-width: 320px;">
-                                            <span class="input-group-text search-icon"><i class="bi bi-search"></i></span>
-                                            <input type="text" id="dashExamSearch" class="form-control border-0 bg-transparent" placeholder="Search exams">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table align-middle mb-0">
-                                        <thead>
-                                            <tr>
-                                                <th>Title</th>
-                                                <th>Subject</th>
-                                                <th>Category</th>
-                                                <th>Questions</th>
-                                                <th>Duration</th>
-                                                <th>Status</th>
-                                                <th>Created</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="dashExamBody">
-                                            <% if (recentExams && recentExams.length > 0) { %>
-                                                <% recentExams.forEach(exam => { %>
-                                                    <tr data-status="<%= exam.isActive ? 'active' : 'inactive' %>">
-                                                        <td class="fw-semibold text-dark">
-                                                            <%= exam.title %>
-                                                        </td>
-                                                        <td><%= exam.subject || '-' %></td>
-                                                        <td>
-                                                            <% if (exam.category && exam.category.name) { %>
-                                                                <span class="badge bg-light text-dark"><%= exam.category.name %></span>
-                                                            <% } else { %>
-                                                                <span class="text-muted">-</span>
-                                                            <% } %>
-                                                        </td>
-                                                        <td><%= exam.questions.length %></td>
-                                                        <td><%= exam.duration %> min</td>
-                                                        <td>
-                                                            <% if (exam.isActive) { %>
-                                                                <span class="badge bg-success status-badge">Active</span>
-                                                            <% } else { %>
-                                                                <span class="badge bg-secondary status-badge">Inactive</span>
-                                                            <% } %>
-                                                        </td>
-                                                        <td><%= new Date(exam.createdAt).toLocaleDateString() %></td>
-                                                    </tr>
-                                                <% }) %>
-                                            <% } else { %>
-                                                <tr>
-                                                    <td colspan="7" class="text-center">
-                                                        <div class="empty-state">
-                                                            <i class="bi bi-clipboard-data text-muted fs-3 d-block mb-2"></i>
-                                                            <p class="text-muted mb-1">No recent exams available yet.</p>
-                                                            <a href="/admin/create-exam" class="text-primary fw-semibold">Create your first exam</a>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            <% } %>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-xxl-5">
-                        <div class="glass-card timeline-card h-100">
-                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
-                                <h5 class="mb-0">Recent Activity</h5>
-                                <span class="insight-pill"><i class="bi bi-clock-history"></i> Last <%= totalRecent %> updates</span>
-                            </div>
-                            <% if (recentExams && recentExams.length > 0) { %>
-                                <div class="timeline">
-                                    <% recentExams.forEach(exam => { %>
-                                        <div class="timeline-item">
-                                            <span class="timeline-icon <%= exam.isActive ? 'bg-success-subtle' : 'bg-secondary-subtle' %>">
-                                                <i class="bi <%= exam.isActive ? 'bi-play-circle' : 'bi-pause-circle' %>"></i>
-                                            </span>
-                                            <h6 class="mb-1"><%= exam.title %></h6>
-                                            <p class="mb-1">
-                                                <span class="fw-semibold"><%= exam.subject || 'General' %></span>
-                                                · <%= exam.questions.length %> questions · <%= exam.duration %> min
-                                            </p>
-                                            <div class="timestamp">
-                                                <i class="bi bi-calendar-event"></i>
-                                                <span><%= new Date(exam.createdAt).toLocaleDateString() %></span>
-                                            </div>
-                                        </div>
-                                    <% }) %>
-                                </div>
-                            <% } else { %>
-                                <div class="text-center py-4">
-                                    <i class="bi bi-calendar2-week text-muted fs-2 d-block mb-2"></i>
-                                    <p class="text-muted mb-2">Activity feed is quiet right now.</p>
-                                    <a href="/admin/create-exam" class="text-primary fw-semibold">Schedule a new exam</a>
-                                </div>
-                            <% } %>
-                        </div>
-                    </div>
-                </section>
+<div class="row g-4">
+    <!-- WELCOME & HERO BANNER (Admin Custom Green Gradient) -->
+    <div class="col-12">
+        <div class="dashboard-hero p-4 text-white rounded-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3" style="min-height: auto; background: linear-gradient(135deg, #1E3A8A 0%, #10B981 100%);">
+            <div>
+                <span class="badge bg-light text-success mb-2 fw-semibold px-2.5 py-1 text-uppercase" style="font-size:0.75rem;"><i class="bi bi-shield-lock me-1"></i> Admin Console</span>
+                <h2 class="fw-bold mb-1 text-white">Welcome back, <%= user.username %>!</h2>
+                <p class="mb-0 text-white-50 small">Manage your exam repository, view submissions, categories, and real-time statistics.</p>
+            </div>
+            
+            <div class="bg-white bg-opacity-10 border border-white border-opacity-10 rounded p-3 text-start hero-side-card" style="backdrop-filter: blur(10px);">
+                <div class="small text-white-50 fw-semibold text-uppercase tracking-wider mb-1"><i class="bi bi-speedometer2 me-1"></i> System Status</div>
+                <div class="fw-bold text-white text-truncate" style="font-size: 0.95rem;">All Services Online</div>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <span class="badge bg-success text-white" style="font-size:0.75rem;"><i class="bi bi-circle-fill me-1" style="font-size:0.5rem;"></i> Active Now</span>
+                </div>
             </div>
         </div>
-    </section>
+    </div>
+
+    <!-- STATISTICS GRID -->
+    <div class="col-12">
+        <div class="row g-3">
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="stat-card border-start border-4 border-primary">
+                    <span class="stat-icon accent-primary" style="width:40px; height:40px; font-size:1.1rem;"><i class="bi bi-journal-richtext"></i></span>
+                    <div class="stat-info">
+                        <span class="stat-title text-uppercase tracking-wider" style="font-size:0.65rem;">Total Exams</span>
+                        <div class="stat-value fs-5 text-dark"><%= safeExams %></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="stat-card border-start border-4 border-success">
+                    <span class="stat-icon accent-success" style="width:40px; height:40px; font-size:1.1rem;"><i class="bi bi-check2-all"></i></span>
+                    <div class="stat-info">
+                        <span class="stat-title text-uppercase tracking-wider" style="font-size:0.65rem;">Submissions</span>
+                        <div class="stat-value fs-5 text-dark"><%= safeSubmissions %></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="stat-card border-start border-4 border-info">
+                    <span class="stat-icon accent-info" style="width:40px; height:40px; font-size:1.1rem;"><i class="bi bi-tags"></i></span>
+                    <div class="stat-info">
+                        <span class="stat-title text-uppercase tracking-wider" style="font-size:0.65rem;">Categories</span>
+                        <div class="stat-value fs-5 text-dark"><%= safeCategories %></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="stat-card border-start border-4 border-warning">
+                    <span class="stat-icon accent-warning" style="width:40px; height:40px; font-size:1.1rem;"><i class="bi bi-activity"></i></span>
+                    <div class="stat-info">
+                        <span class="stat-title text-uppercase tracking-wider" style="font-size:0.65rem;">Active Ratio</span>
+                        <div class="stat-value fs-5 text-dark"><%= activeRatio %>%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHARTS SECTION -->
+    <div class="col-12 col-lg-8" style="min-width: 0;">
+        <div class="card p-4 border-0 shadow-sm bg-white h-100" style="overflow: hidden;">
+            <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+                <div>
+                    <h5 class="fw-bold mb-1 text-dark"><i class="bi bi-graph-up text-primary me-2"></i>Students Growth</h5>
+                    <p class="text-muted small mb-0">Active student registration curve over the last 6 months.</p>
+                </div>
+                <span class="badge bg-light text-secondary">Real-time logs</span>
+            </div>
+            <div class="chart-container chart-container-lg">
+                <canvas id="adminStudentGrowthChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4" style="min-width: 0;">
+        <div class="card p-4 border-0 shadow-sm bg-white h-100" style="overflow: hidden;">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div>
+                    <h5 class="fw-bold mb-1 text-dark"><i class="bi bi-pie-chart text-primary me-2"></i>Exam Categories</h5>
+                    <p class="text-muted small mb-0">Exams per category.</p>
+                </div>
+            </div>
+            <div class="chart-container chart-container-lg">
+                <canvas id="adminCategoryPieChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- COMMAND CENTER ACTIONS -->
+    <div class="col-12 col-lg-7">
+        <div class="card p-4 border-0 shadow-sm bg-white h-100">
+            <div class="mb-4">
+                <h5 class="fw-bold mb-1 text-dark"><i class="bi bi-lightning-charge text-primary me-2"></i>Quick Commands</h5>
+                <p class="text-muted small mb-0">Instant administrative shortcuts and workspace links.</p>
+            </div>
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <a href="/admin/create-exam" class="btn-action">
+                        <div>
+                            <div class="fw-bold text-primary">Create New Exam</div>
+                            <div class="text-muted small" style="font-size:0.75rem;">Build MCQs or import excel sheets</div>
+                        </div>
+                        <span class="cta-icon bg-light text-primary"><i class="bi bi-plus-lg"></i></span>
+                    </a>
+                </div>
+                <div class="col-sm-6">
+                    <a href="/admin/manage-exams" class="btn-action">
+                        <div>
+                            <div class="fw-bold text-primary">Manage Library</div>
+                            <div class="text-muted small" style="font-size:0.75rem;">Activate/deactivate active exams</div>
+                        </div>
+                        <span class="cta-icon bg-light text-primary"><i class="bi bi-collection"></i></span>
+                    </a>
+                </div>
+                <div class="col-sm-6">
+                    <a href="/admin/manage-categories" class="btn-action">
+                        <div>
+                            <div class="fw-bold text-primary">Edit Categories</div>
+                            <div class="text-muted small" style="font-size:0.75rem;">Adjust topics and tags</div>
+                        </div>
+                        <span class="cta-icon bg-light text-primary"><i class="bi bi-tag"></i></span>
+                    </a>
+                </div>
+                <div class="col-sm-6">
+                    <a href="/admin/exam-reports" class="btn-action">
+                        <div>
+                            <div class="fw-bold text-primary">Analyse Results</div>
+                            <div class="text-muted small" style="font-size:0.75rem;">Grade submissions and review scores</div>
+                        </div>
+                        <span class="cta-icon bg-light text-primary"><i class="bi bi-bar-chart"></i></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INSIGHTS SPEEDOMETER -->
+    <div class="col-12 col-lg-5">
+        <div class="card p-4 border-0 shadow-sm bg-white h-100">
+            <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-activity text-primary me-2"></i>System snapshot</h5>
+            <div class="d-flex flex-column gap-3 mt-2" style="font-size:0.875rem;">
+                <div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Assessment Output</span>
+                        <span class="fw-bold text-dark"><%= submissionRatio %>%</span>
+                    </div>
+                    <div class="progress" style="height: 6px; background-color: var(--border-color);">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: <%= submissionRatio %>%;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Category Coverage</span>
+                        <span class="fw-bold text-dark"><%= categoryCoverage %>%</span>
+                    </div>
+                    <div class="progress" style="height: 6px; background-color: var(--border-color);">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: <%= categoryCoverage %>%;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Active Ratio</span>
+                        <span class="fw-bold text-dark"><%= activeRatio %>%</span>
+                    </div>
+                    <div class="progress" style="height: 6px; background-color: var(--border-color);">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: <%= activeRatio %>%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXAMS EXPLORER -->
+    <div class="col-12 col-lg-8">
+        <div class="card table-card border-0 shadow-sm bg-white">
+            <div class="card-header bg-white border-bottom py-3 d-flex flex-column flex-md-row gap-3 align-items-md-center justify-content-between">
+                <div>
+                    <h5 class="mb-0 fw-bold text-dark">Recent Exam Assessments</h5>
+                    <p class="text-muted small mb-0">List of last scheduled assessments.</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="input-group search-input-group">
+                        <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" id="dashExamSearch" class="form-control border-start-0" placeholder="Search title...">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr class="table-light">
+                            <th class="py-3 px-4">Exam Title</th>
+                            <th class="py-3">Subject</th>
+                            <th class="py-3">Category</th>
+                            <th class="py-3">Questions</th>
+                            <th class="py-3">Duration</th>
+                            <th class="py-3 px-4">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashExamBody">
+                        <% if (recentExams && recentExams.length > 0) { %>
+                            <% recentExams.forEach(exam => { %>
+                                <tr data-status="<%= exam.isActive ? 'active' : 'inactive' %>">
+                                    <td class="fw-bold text-dark px-4"><%= exam.title %></td>
+                                    <td><%= exam.subject || '-' %></td>
+                                    <td>
+                                        <% if (exam.category && exam.category.name) { %>
+                                            <span class="badge bg-primary-subtle text-primary fw-semibold"><%= exam.category.name %></span>
+                                        <% } else { %>
+                                            <span class="text-muted">-</span>
+                                        <% } %>
+                                    </td>
+                                    <td><%= exam.questions.length %> Qs</td>
+                                    <td><%= exam.duration %> min</td>
+                                    <td class="px-4">
+                                        <% if (exam.isActive) { %>
+                                            <span class="badge bg-success-subtle text-success">Active</span>
+                                        <% } else { %>
+                                            <span class="badge bg-secondary-subtle text-secondary">Inactive</span>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">No recent exams available.</td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- RECENT ACTIVITY TIMELINE -->
+    <div class="col-12 col-lg-4">
+        <div class="card p-4 border-0 shadow-sm bg-white h-100">
+            <h5 class="fw-bold mb-4 text-dark"><i class="bi bi-clock-history text-primary me-2"></i>Recent Activity</h5>
+            <% if (recentExams && recentExams.length > 0) { %>
+                <div class="timeline" style="font-size:0.825rem;">
+                    <% recentExams.forEach(exam => { %>
+                        <div class="timeline-item <%= exam.isActive ? '' : 'inactive' %>">
+                            <h6 class="mb-1 text-dark fw-semibold"><%= exam.title %></h6>
+                            <p class="mb-0 text-muted small"><%= exam.subject || 'General' %> · <%= exam.questions.length %> Qs · <%= exam.duration %> Min</p>
+                            <span class="text-muted small" style="font-size:0.75rem;"><%= new Date(exam.createdAt).toLocaleDateString([], {day: '2-digit', month: 'short', year: 'numeric'}) %></span>
+                        </div>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <div class="text-center py-5 text-muted">No recent activities.</div>
+            <% } %>
+        </div>
+    </div>
 </div>
 
-<%- include('../partials/footer') %>
-
 <script>
-  (function(){
-    const sidebar = document.getElementById('adminSidebar');
-    const backdrop = document.getElementById('sidebarBackdrop');
-    const collapseButtons = document.querySelectorAll('[data-sidebar-collapse]');
-    const toggleButtons = document.querySelectorAll('[data-sidebar-toggle]');
-    const mobileBreakpoint = window.matchMedia('(max-width: 991.98px)');
+document.addEventListener('DOMContentLoaded', function() {
+    // Search filter for recent exams table
+    const searchInput = document.getElementById('dashExamSearch');
+    const tableRows = document.querySelectorAll('#dashExamBody tr');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = searchInput.value.toLowerCase();
+            tableRows.forEach(row => {
+                const text = row.cells[0]?.textContent.toLowerCase() || '';
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+    }
 
-    if (!sidebar) return;
-
-    const updateCollapseIcons = () => {
-      document.querySelectorAll('.collapse-btn .bi').forEach(icon => {
-        if (sidebar.classList.contains('collapsed')) {
-          icon.classList.remove('bi-chevron-left');
-          icon.classList.add('bi-chevron-right');
-        } else {
-          icon.classList.remove('bi-chevron-right');
-          icon.classList.add('bi-chevron-left');
+    // Chart 1: Students Growth Chart (Area Chart)
+    const ctxGrowth = document.getElementById('adminStudentGrowthChart').getContext('2d');
+    new Chart(ctxGrowth, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Registered Students',
+                data: [32, 54, 76, 120, 150, 185],
+                borderColor: '#2563EB',
+                backgroundColor: 'rgba(37, 99, 235, 0.05)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { grid: { color: '#F1F5F9' }, ticks: { precision: 0 } },
+                x: { grid: { display: false } }
+            }
         }
-      });
-    };
-
-    const updateBackdrop = (show) => {
-      if (!backdrop) return;
-      if (show && mobileBreakpoint.matches) {
-        backdrop.classList.add('active');
-      } else {
-        backdrop.classList.remove('active');
-      }
-    };
-
-    const closeSidebar = () => {
-      if (!sidebar) return;
-      sidebar.classList.remove('active');
-      updateBackdrop(false);
-    };
-
-    const refreshSidebarLayout = () => {
-      if (!sidebar) return;
-      if (mobileBreakpoint.matches) {
-        sidebar.classList.remove('collapsed');
-        document.body.classList.remove('sidebar-collapsed');
-        closeSidebar();
-      } else {
-        sidebar.classList.remove('active');
-        updateBackdrop(false);
-        document.body.classList.toggle('sidebar-collapsed', sidebar.classList.contains('collapsed'));
-      }
-      updateCollapseIcons();
-    };
-
-    const handleCollapseToggle = (e) => {
-      if (e) e.preventDefault();
-      if (!sidebar) return;
-      if (mobileBreakpoint.matches) {
-        const isActive = sidebar.classList.contains('active');
-        sidebar.classList.toggle('active');
-        sidebar.classList.remove('collapsed');
-        document.body.classList.remove('sidebar-collapsed');
-        updateBackdrop(!isActive);
-      } else {
-        sidebar.classList.toggle('collapsed');
-        sidebar.classList.remove('active');
-        document.body.classList.toggle('sidebar-collapsed', sidebar.classList.contains('collapsed'));
-        updateBackdrop(false);
-      }
-      updateCollapseIcons();
-    };
-
-    collapseButtons.forEach(btn => {
-      btn.addEventListener('click', handleCollapseToggle);
     });
 
-    toggleButtons.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        handleCollapseToggle(e);
-      });
+    // Chart 2: Category Pie Chart
+    const ctxPie = document.getElementById('adminCategoryPieChart').getContext('2d');
+    new Chart(ctxPie, {
+        type: 'doughnut',
+        data: {
+            labels: ['Computer Science', 'General Science', 'Mathematics', 'Unassigned'],
+            datasets: [{
+                data: [12, 6, 8, 4],
+                backgroundColor: ['#2563EB', '#22C55E', '#F59E0B', '#64748B'],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
+            }
+        }
     });
 
-    if (backdrop) {
-      backdrop.addEventListener('click', closeSidebar);
-    }
-
-    document.addEventListener('click', (event) => {
-      if (!sidebar || !mobileBreakpoint.matches) return;
-      const isClickInside = sidebar.contains(event.target);
-      const isToggleButton = Array.from(toggleButtons).some(btn => btn.contains(event.target));
-      if (!isClickInside && !isToggleButton && sidebar.classList.contains('active')) {
-        closeSidebar();
-      }
-    });
-
-    window.addEventListener('resize', refreshSidebarLayout);
-    mobileBreakpoint.addEventListener('change', refreshSidebarLayout);
-    refreshSidebarLayout();
-
-    const input = document.getElementById('dashExamSearch');
-    const filterButtons = document.querySelectorAll('[data-status-filter]');
-    let currentStatus = '';
-
-    function applyFilters() {
-      const q = (input && input.value ? input.value : '').toLowerCase();
-      document.querySelectorAll('#dashExamBody tr').forEach(tr => {
-        const text = tr.innerText.toLowerCase();
-        const status = tr.getAttribute('data-status') || '';
-        const byText = text.includes(q);
-        const byStatus = !currentStatus || status === currentStatus;
-        tr.style.display = (byText && byStatus) ? '' : 'none';
-      });
-    }
-
-    if (input) input.addEventListener('input', applyFilters);
-
-    filterButtons.forEach(btn => {
-      btn.addEventListener('click', function(){
-        filterButtons.forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        currentStatus = this.getAttribute('data-status');
-        applyFilters();
-      });
-    });
-
+    // Socket.io Real-time update listeners
     try {
-      const socket = io();
-      socket.on('connect', function(){ socket.emit('join-admin'); });
-      socket.on('exams:update', function(){ location.reload(); });
-      socket.on('categories:update', function(){ location.reload(); });
-      socket.on('reports:update', function(){ location.reload(); });
+        const socket = io();
+        socket.on('connect', function(){ socket.emit('join-admin'); });
+        socket.on('exams:update', function(){ location.reload(); });
+        socket.on('categories:update', function(){ location.reload(); });
+        socket.on('reports:update', function(){ location.reload(); });
     } catch(e) {}
-  })();
+});
 </script>
+
+<%- include('../partials/footer') %>

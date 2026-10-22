@@ -1,10 +1,23 @@
 const Exam = require('../models/Exam');
 const Submission = require('../models/Submission');
+const Notification = require('../models/Notification');
 
 exports.getExams = async (req, res) => {
     try {
-        const exams = await Exam.find({ isActive: true }).populate('createdBy', 'username');
-        res.render('exams/list', { exams });
+        const exams = await Exam.find({ 
+            isActive: true,
+            $or: [
+                { assignToAll: true },
+                { assignToAll: { $exists: false } }, // For existing exams without this field
+                { assignedTo: req.session.user._id }
+            ]
+        }).populate('createdBy', 'username');
+
+        const allNotifications = await Notification.find({ user: req.session.user._id })
+            .sort({ createdAt: -1 })
+            .limit(100);
+
+        res.render('exams/list', { exams, allNotifications });
     } catch (err) {
         console.error(err);
         req.flash('error', 'Error fetching exams');
@@ -17,6 +30,12 @@ exports.getExam = async (req, res) => {
         const exam = await Exam.findById(req.params.id).populate('questions');
         if (!exam) {
             req.flash('error', 'Exam not found');
+            return res.redirect('/exams');
+        }
+
+        // Check if student is authorized to take this exam
+        if (exam.assignToAll === false && (!exam.assignedTo || !exam.assignedTo.includes(req.session.user._id))) {
+            req.flash('error', 'You are not assigned to take this exam.');
             return res.redirect('/exams');
         }
 
@@ -296,7 +315,7 @@ exports.getResults = async (req, res) => {
 
         // Control visibility of correct answers for students based on exam flag
         const canReveal = submission.exam && submission.exam.revealAnswersToStudents === true;
-        res.render('exams/results', { submission, canReveal });
+        res.render('exams/results', { submission, canReveal, SOCKET_IO: true });
     } catch (err) {
         console.error(err);
         req.flash('error', 'Error loading results');
@@ -319,5 +338,63 @@ exports.getMyResults = async (req, res) => {
         console.error(err);
         req.flash('error', 'Error loading your results');
         res.redirect('/exams');
+    }
+};
+
+exports.getCertificate = async (req, res) => {
+    try {
+        const submission = await Submission.findById(req.params.id)
+            .populate('exam')
+            .populate('student');
+
+        if (!submission || submission.student._id.toString() !== req.session.user._id.toString()) {
+            req.flash('error', 'Certificate not found');
+            return res.redirect('/exams');
+        }
+
+        if (submission.status !== 'submitted') {
+            req.flash('error', 'Exam not completed yet.');
+            return res.redirect('/exams');
+        }
+
+        const pct = submission.totalQuestions > 0 ? Math.round((submission.score / submission.totalQuestions) * 100) : 0;
+        const passingThreshold = submission.exam.passingPercentage || 60;
+
+        if (pct < passingThreshold) {
+            req.flash('error', 'You did not meet the passing criteria for a certificate.');
+            return res.redirect('/exams/my-results');
+        }
+
+        const isPreview = req.query.preview === 'true';
+        res.render('exams/certificate', { submission, pct, isPreview });
+    } catch (err) {
+        console.error(err);
+        req.flash('error', 'Error loading certificate');
+        res.redirect('/exams/my-results');
+    }
+};
+
+exports.getNotifications = async (req, res) => {
+    try {
+        const notifications = await Notification.find({ user: req.session.user._id, read: false })
+            .sort({ createdAt: -1 })
+            .limit(50);
+        res.json({ success: true, notifications });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Failed to load notifications' });
+    }
+};
+
+exports.clearNotifications = async (req, res) => {
+    try {
+        await Notification.updateMany(
+            { user: req.session.user._id, read: false },
+            { $set: { read: true } }
+        );
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Failed to clear notifications' });
     }
 };

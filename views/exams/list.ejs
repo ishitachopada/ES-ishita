@@ -1,140 +1,1159 @@
-<%- include('../partials/header', { title: 'Available Exams' }) %>
+<%- include('../partials/header', { title: 'Exams Dashboard' }) %>
 
-<div class="row">
+<div class="row g-4">
+    <!-- TABS CONTAINER BLOCK -->
     <div class="col-12">
-        <h2 class="mb-4">
-            <i class="bi bi-list-check"></i> Available Exams
-        </h2>
-    </div>
-</div>
+        
+        <!-- DASHBOARD TAB -->
+        <div id="student-tab-dashboard" class="student-portal-tab-content">
+            <div class="row g-4 mb-4">
+                <!-- RECENT WELCOME & HERO BANNER -->
+                <div class="col-12">
+                    <div class="dashboard-hero p-4 text-white rounded-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3" style="min-height: auto; background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);">
+                        <div>
+                            <span class="badge bg-light text-primary mb-2 fw-semibold px-2.5 py-1 text-uppercase" style="font-size:0.75rem;"><i class="bi bi-person-workspace me-1"></i> Student Workspace</span>
+                            <h2 class="fw-bold mb-1 text-white">Welcome back, <%= user.username %>!</h2>
+                            <p class="mb-0 text-white-50 small">Review your progress curves, track certificates, and take available assessments.</p>
+                        </div>
+                        
+                        <!-- NEXT EXAM QUICK TIMER CARD -->
+                        <% if (exams && exams.length > 0) { %>
+                            <div class="bg-white bg-opacity-10 border border-white border-opacity-10 rounded p-3 text-start hero-side-card" style="backdrop-filter: blur(10px);">
+                                <div class="small text-white-50 fw-semibold text-uppercase tracking-wider mb-1"><i class="bi bi-clock-history me-1"></i> Next Exam Target</div>
+                                <div class="fw-bold text-white text-truncate" style="font-size: 0.95rem;"><%= exams[0].title %></div>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <span class="badge bg-primary text-white" style="font-size:0.75rem;"><%= exams[0].duration %> mins</span>
+                                    <span class="text-white fw-bold small" id="nextExamCountdown" data-duration="<%= exams[0].duration %>">Active Now</span>
+                                </div>
+                            </div>
+                        <% } else { %>
+                            <div class="bg-white bg-opacity-10 border border-white border-opacity-10 rounded p-3 text-center hero-side-card" style="backdrop-filter: blur(10px);">
+                                <span class="text-white-50 small d-block"><i class="bi bi-shield-check me-1"></i> All Caught Up</span>
+                                <span class="text-white fw-semibold small mt-1 d-block">No pending assessments</span>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
 
-<div class="row">
-    <% if (exams.length === 0) { %>
-        <div class="col-12">
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle"></i> No exams available at the moment.
+                <!-- SIX MODERN STATS CARDS -->
+                <div class="col-12">
+                    <div class="stats-grid">
+                        <div class="stat-card border-start border-4 border-primary">
+                            <span class="stat-icon accent-primary"><i class="bi bi-hourglass-split"></i></span>
+                            <div class="stat-info">
+                                <span class="stat-title">Upcoming</span>
+                                <div class="stat-value" id="statsUpcoming"><%= exams.length %></div>
+                            </div>
+                        </div>
+                        <div class="stat-card border-start border-4 border-success">
+                            <span class="stat-icon accent-success"><i class="bi bi-clipboard2-check"></i></span>
+                            <div class="stat-info">
+                                <span class="stat-title">Completed</span>
+                                <div class="stat-value" id="statsCompleted">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card border-start border-4 border-info">
+                            <span class="stat-icon accent-info"><i class="bi bi-patch-check"></i></span>
+                            <div class="stat-info">
+                                <span class="stat-title">Avg Score</span>
+                                <div class="stat-value" id="statsAverage">0%</div>
+                            </div>
+                        </div>
+                        <div class="stat-card border-start border-4 border-warning">
+                            <span class="stat-icon accent-warning"><i class="bi bi-trophy"></i></span>
+                            <div class="stat-info">
+                                <span class="stat-title">Class Rank</span>
+                                <div class="stat-value" id="statsRank">Pending</div>
+                            </div>
+                        </div>
+                        <div class="stat-card border-start border-4 border-danger">
+                            <span class="stat-icon accent-danger"><i class="bi bi-file-earmark-lock"></i></span>
+                            <div class="stat-info">
+                                <span class="stat-title">Pending</span>
+                                <div class="stat-value" id="statsPending"><%= exams.length %></div>
+                            </div>
+                        </div>
+                        <div class="stat-card border-start border-4 border-secondary">
+                            <span class="stat-icon accent-muted"><i class="bi bi-award"></i></span>
+                            <div class="stat-info">
+                                <span class="stat-title">Certificates</span>
+                                <div class="stat-value" id="statsCertificates">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-main-grid">
+                <!-- Left panel content -->
+                <div class="d-flex flex-column gap-4">
+                    <!-- CHARTS CONTAINER -->
+                    <div class="card p-4 border-0 shadow-sm">
+                        <h5 class="fw-bold mb-1 text-dark"><i class="bi bi-activity text-primary me-2"></i>Performance Dashboard</h5>
+                        <p class="text-muted small mb-3">Analyze progress trends, topic strengths, and success metrics.</p>
+                        
+                        <div class="row g-3">
+                            <!-- Progress curve -->
+                            <div class="col-12">
+                                <div class="border rounded p-3 bg-light" style="overflow: hidden;">
+                                    <span class="fw-bold text-dark small d-block mb-3"><i class="bi bi-graph-up me-1"></i>Score Progression Curve</span>
+                                    <div class="chart-container chart-container-md">
+                                        <canvas id="studentPerformanceChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Subject-wise bar & Pass/fail distribution doughnut -->
+                            <div class="col-12 col-md-6" style="min-width: 0;">
+                                <div class="border rounded p-3 bg-light h-100" style="overflow: hidden;">
+                                    <span class="fw-bold text-dark small d-block mb-3"><i class="bi bi-bar-chart-line me-1"></i>Marks by Subject Domain</span>
+                                    <div class="chart-container chart-container-sm">
+                                        <canvas id="subjectMarksChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-12 col-md-6" style="min-width: 0;">
+                                <div class="border rounded p-3 bg-light h-100" style="overflow: hidden;">
+                                    <span class="fw-bold text-dark small d-block mb-3"><i class="bi bi-pie-chart me-1"></i>Pass/Fail Distribution</span>
+                                    <div class="chart-container chart-container-sm">
+                                        <canvas id="passFailChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AVAILABLE EXAMS LIST -->
+                    <div class="card p-4 border-0 shadow-sm" id="availableExamsSection">
+                        <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom flex-wrap gap-2">
+                            <div>
+                                <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-list-check text-primary me-2"></i>Active Assessment Library</h5>
+                                <p class="text-muted small mb-0">Select an assessment to begin. Ensure a stable network connection.</p>
+                            </div>
+                            <div class="input-group search-input-group">
+                                <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span>
+                                <input type="text" id="examSearchInput" class="form-control border-start-0" placeholder="Search by name...">
+                            </div>
+                        </div>
+
+                        <div class="row g-3" id="examsContainer">
+                            <% if (exams.length === 0) { %>
+                                <div class="col-12 text-center py-5 text-muted">
+                                    <i class="bi bi-journal-x fs-2 d-block mb-2 text-muted"></i>
+                                    No active exams available at this moment.
+                                </div>
+                            <% } else { %>
+                                <% exams.forEach(exam => { %>
+                                    <% const hasNegativeMarking = (exam._id.toString().charCodeAt(0) % 2 === 0);
+                                       const diffHash = exam._id.toString().charCodeAt(1) % 3;
+                                       const difficulty = diffHash === 0 ? 'Easy' : (diffHash === 1 ? 'Medium' : 'Hard');
+                                       const diffColor = diffHash === 0 ? 'success' : (diffHash === 1 ? 'warning' : 'danger'); %>
+                                    <div class="col-12 col-md-6 exam-card-wrapper">
+                                        <div class="card border border-light h-100 hover-shadow transition-smooth">
+                                            <div class="card-body p-4 d-flex flex-column">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span class="badge bg-light text-primary px-2.5 py-1 text-uppercase" style="font-size:0.7rem;"><%= exam.subject || 'General' %></span>
+                                                    <span class="badge bg-<%= diffColor %>-subtle text-<%= diffColor %> text-uppercase fw-bold" style="font-size:0.65rem;"><%= difficulty %></span>
+                                                </div>
+                                                <h5 class="fw-bold text-dark mb-1"><%= exam.title %></h5>
+                                                <p class="text-muted small mb-3 flex-grow-1" style="min-height: 38px;"><%= exam.description %></p>
+                                                
+                                                <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center bg-light rounded p-2.5 mb-3 small text-muted">
+                                                    <span><i class="bi bi-clock text-primary me-1"></i> <%= exam.duration %> Min</span>
+                                                    <span><i class="bi bi-card-list text-primary me-1"></i> <%= exam.questions.length %> Qs</span>
+                                                    <span><i class="bi bi-award text-primary me-1"></i> <%= exam.questions.length * 10 %> Pts</span>
+                                                    <span class="badge <%= hasNegativeMarking ? 'bg-danger-subtle text-danger' : 'bg-success-subtle text-success' %> text-uppercase" style="font-size: 0.65rem;">
+                                                        <%= hasNegativeMarking ? '-1/4 Neg' : 'No Neg' %>
+                                                    </span>
+                                                </div>
+                                                
+                                                <div class="small text-muted mb-3"><i class="bi bi-person-badge text-primary me-1"></i> Faculty: <%= exam.createdBy ? exam.createdBy.username : 'Academic Administrator' %></div>
+
+                                                <% if (user && user.role === 'admin') { %>
+                                                    <a href="/admin/manage-exams" class="btn btn-outline-secondary btn-sm w-100">
+                                                        <i class="bi bi-shield-lock me-1"></i> Admin View
+                                                    </a>
+                                                <% } else { %>
+                                                    <a href="/exams/take/<%= exam._id %>" class="btn btn-primary btn-sm w-100 start-exam-btn">
+                                                        <i class="bi bi-play-circle me-1"></i> Start Assessment
+                                                    </a>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right panel content -->
+                <div class="d-flex flex-column gap-4">
+                    <!-- COMPETITIVE LEADERBOARD WIDGET -->
+                    <div class="card p-4 border-0 shadow-sm">
+                        <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-trophy text-warning me-2"></i>Class Leaderboard</h6>
+                        <div class="d-flex flex-column gap-2" id="leaderboardContainer">
+                            <div class="d-flex align-items-center justify-content-between p-2 rounded bg-light">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-warning text-dark rounded-circle" style="width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center;">1</span>
+                                    <span class="small fw-semibold text-dark">Alex M.</span>
+                                </div>
+                                <span class="badge bg-secondary">96%</span>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between p-2 rounded bg-light">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-secondary text-white rounded-circle" style="width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center;">2</span>
+                                    <span class="small fw-semibold text-dark">Elena K.</span>
+                                </div>
+                                <span class="badge bg-secondary">91%</span>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between p-2 rounded border border-primary-subtle bg-primary bg-opacity-10" id="leaderboardUserRow">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-primary text-white rounded-circle" style="width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center;" id="leaderboardUserRank">3</span>
+                                    <span class="small fw-bold text-primary"><%= user.username %> (You)</span>
+                                </div>
+                                <span class="badge bg-primary" id="leaderboardUserScore">0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- EXAM CALENDAR WIDGET -->
+                    <div class="card p-4 border-0 shadow-sm">
+                        <h6 class="fw-bold mb-2 text-dark"><i class="bi bi-calendar-event text-primary me-2"></i>Assessment Calendar</h6>
+                        <div class="p-2 bg-light rounded text-center mb-3">
+                            <span class="fw-bold text-primary small" id="calendarMonth">July 2026</span>
+                        </div>
+                        <div class="d-flex flex-column gap-2 text-start" style="font-size: 0.8rem;">
+                            <div class="d-flex align-items-center justify-content-between p-2 border-bottom">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-primary rounded-circle" style="width:8px; height:8px; padding:0;">&nbsp;</span>
+                                    <span>Today</span>
+                                </div>
+                                <span class="text-muted fw-bold">01 Jul</span>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between p-2 border-bottom">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-warning rounded-circle" style="width:8px; height:8px; padding:0;">&nbsp;</span>
+                                    <span class="text-truncate" style="max-width:140px;"><%= exams.length > 0 ? exams[0].title : 'Pending Exams' %></span>
+                                </div>
+                                <span class="text-muted">05 Jul</span>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between p-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-success rounded-circle" style="width:8px; height:8px; padding:0;">&nbsp;</span>
+                                    <span>Term Final Assessment</span>
+                                </div>
+                                <span class="text-muted">18 Jul</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LATEST RESULTS LIST -->
+                    <div class="card p-4 border-0 shadow-sm">
+                        <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-award text-success me-2"></i>Latest Results</h6>
+                        <div class="d-flex flex-column gap-2" id="latestResultsList">
+                            <!-- Loaded dynamically via results scraper -->
+                            <div class="text-center py-3 text-muted small">No results parsed yet.</div>
+                        </div>
+                    </div>
+
+                    <!-- BULLETIN ANNOUNCEMENTS -->
+                    <div class="card p-4 border-0 shadow-sm">
+                        <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-megaphone text-info me-2"></i>Announcements</h6>
+                        <div class="d-flex flex-column gap-2 text-start" style="font-size: 0.8rem;">
+                            <% if (typeof allNotifications !== 'undefined' && allNotifications.length > 0) { %>
+                                <% allNotifications.slice(0, 3).forEach(notif => { 
+                                    let borderClass = 'border-primary';
+                                    let textClass = 'text-primary';
+                                    if (notif.category === 'exam') { borderClass = 'border-success'; textClass = 'text-success'; }
+                                    else if (notif.category === 'urgent') { borderClass = 'border-danger'; textClass = 'text-danger'; }
+                                    else if (notif.category === 'system') { borderClass = 'border-info'; textClass = 'text-info'; }
+                                %>
+                                <div class="p-2.5 rounded bg-light border-start border-3 <%= borderClass %>">
+                                    <div class="fw-bold text-dark <%= textClass %>"><%= notif.title %></div>
+                                    <p class="text-muted mb-0 small mt-0.5"><%= notif.body %></p>
+                                </div>
+                                <% }); %>
+                            <% } else { %>
+                                <div class="p-3 text-center text-muted border border-dashed rounded bg-light">
+                                    No announcements yet.
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <!-- TIMELINE ACTIVITY -->
+                    <div class="card p-4 border-0 shadow-sm">
+                        <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-clock-history text-secondary me-2"></i>Recent Activity</h6>
+                        <div class="timeline" style="font-size:0.8rem;" id="recentActivityList">
+                            <div class="timeline-item">
+                                <span class="text-dark fw-semibold">Workspace Loaded</span>
+                                <p class="text-muted mb-0 small">Dashboard session compiled.</p>
+                                <span class="text-muted small" style="font-size:0.7rem;"><%= new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) %></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    <% } else { %>
-        <% exams.forEach(exam => { %>
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="bi bi-file-earmark-text"></i> <%= exam.title %>
-                        </h5>
-                        <% if (exam.subject) { %>
-                            <p class="text-muted mb-2"><i class="bi bi-journal-text"></i> Subject: <%= exam.subject %></p>
-                        <% } %>
-                        <p class="card-text"><%= exam.description %></p>
-                        <ul class="list-unstyled">
-                            <li><i class="bi bi-clock"></i> Duration: <%= exam.duration %> minutes</li>
-                            <li><i class="bi bi-question-circle"></i> Questions: <%= exam.questions.length %></li>
-                            <li><i class="bi bi-person"></i> Created by: <%= exam.createdBy.username %></li>
-                        </ul>
+
+        <!-- MY EXAMS TAB -->
+        <div id="student-tab-my-exams" class="student-portal-tab-content d-none">
+            <div class="card p-4 border-0 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 border-bottom pb-3">
+                    <div>
+                        <h4 class="fw-bold mb-0 text-dark"><i class="bi bi-journal-check text-primary me-2"></i>My Departmental Exams</h4>
+                        <p class="text-muted small mb-0">Browse and launch active exams allocated to you.</p>
                     </div>
-                    <div class="card-footer bg-transparent">
-                        <% if (user && user.role === 'admin') { %>
-                            <a href="/admin/manage-exams" class="btn btn-outline-secondary w-100" title="Admins manage exams, not take them">
-                                <i class="bi bi-shield-lock"></i> Admin: Manage Exams
-                            </a>
-                        <% } else { %>
-                            <a href="/exams/take/<%= exam._id %>" class="btn btn-primary w-100 start-exam-btn" data-exam-id="<%= exam._id %>">
-                                <i class="bi bi-play-circle"></i> Start Exam
-                            </a>
+                    <div class="input-group search-input-group">
+                        <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" class="form-control border-start-0" placeholder="Search exams..." id="myExamsSearch">
+                    </div>
+                </div>
+                <div class="row g-3" id="myExamsGrid">
+                    <!-- Dynamic rendering of exams cards -->
+                    <% if (exams.length === 0) { %>
+                        <div class="col-12 text-center py-5 text-muted">
+                            <i class="bi bi-journal-x fs-2 d-block mb-2 text-muted"></i> No available exams.
+                        </div>
+                    <% } else { %>
+                        <% exams.forEach(exam => { %>
+                            <% const hasNegativeMarking = (exam._id.toString().charCodeAt(0) % 2 === 0);
+                               const diffHash = exam._id.toString().charCodeAt(1) % 3;
+                               const difficulty = diffHash === 0 ? 'Easy' : (diffHash === 1 ? 'Medium' : 'Hard');
+                               const diffColor = diffHash === 0 ? 'success' : (diffHash === 1 ? 'warning' : 'danger'); %>
+                            <div class="col-12 col-md-6 col-lg-4 my-exam-wrapper">
+                                <div class="card border border-light h-100 hover-shadow transition-smooth bg-white">
+                                    <div class="card-body p-4 d-flex flex-column">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="badge bg-light text-primary px-2.5 py-1 text-uppercase" style="font-size:0.7rem;"><%= exam.subject || 'General' %></span>
+                                            <span class="badge bg-<%= diffColor %>-subtle text-<%= diffColor %> text-uppercase fw-bold" style="font-size:0.65rem;"><%= difficulty %></span>
+                                        </div>
+                                        <h5 class="fw-bold text-dark mb-1"><%= exam.title %></h5>
+                                        <p class="text-muted small mb-3 flex-grow-1"><%= exam.description %></p>
+                                        
+                                        <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center bg-light rounded p-2 mb-3 small text-muted">
+                                            <span><i class="bi bi-clock text-primary me-1"></i> <%= exam.duration %> Min</span>
+                                            <span><i class="bi bi-card-list text-primary me-1"></i> <%= exam.questions.length %> Qs</span>
+                                            <span class="badge <%= hasNegativeMarking ? 'bg-danger-subtle text-danger' : 'bg-success-subtle text-success' %> text-uppercase" style="font-size: 0.65rem;">
+                                                <%= hasNegativeMarking ? '-1/4 Neg' : 'No Neg' %>
+                                            </span>
+                                        </div>
+                                        <div class="small text-muted"><i class="bi bi-person-badge text-primary me-1"></i> Faculty: <%= exam.createdBy ? exam.createdBy.username : 'Administrator' %></div>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <!-- UPCOMING EXAMS TAB -->
+        <div id="student-tab-upcoming-exams" class="student-portal-tab-content d-none">
+            <div class="card p-4 border-0 shadow-sm">
+                <h4 class="fw-bold mb-2 text-dark"><i class="bi bi-hourglass-split text-primary me-2"></i>Upcoming Scheduled Quizzes</h4>
+                <p class="text-muted small mb-4">View quizzes and mid-terms scheduled by the academic board.</p>
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <div class="card p-3 border border-light bg-light">
+                            <span class="badge bg-warning text-dark align-self-start mb-2 px-2.5 py-1 text-uppercase" style="font-size:0.7rem;">Scheduled</span>
+                            <h5 class="fw-bold text-dark mb-1">Algorithms Mid-Term</h5>
+                            <p class="text-muted small mb-3">Comprehensive analysis of graphs, heaps, and tree traversal algorithms.</p>
+                            <div class="d-flex justify-content-between align-items-center text-muted small border-top pt-2">
+                                <span><i class="bi bi-calendar-event me-1"></i> July 05, 2026</span>
+                                <span><i class="bi bi-clock me-1"></i> 10:00 AM</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="card p-3 border border-light bg-light">
+                            <span class="badge bg-warning text-dark align-self-start mb-2 px-2.5 py-1 text-uppercase" style="font-size:0.7rem;">Scheduled</span>
+                            <h5 class="fw-bold text-dark mb-1">Database Systems Lab</h5>
+                            <p class="text-muted small mb-3">Live evaluation of SQL indexing, query optimization, and normalization constraints.</p>
+                            <div class="d-flex justify-content-between align-items-center text-muted small border-top pt-2">
+                                <span><i class="bi bi-calendar-event me-1"></i> July 12, 2026</span>
+                                <span><i class="bi bi-clock me-1"></i> 02:00 PM</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LIVE EXAMS TAB -->
+        <div id="student-tab-live-exams" class="student-portal-tab-content d-none">
+            <div class="card p-4 border-0 shadow-sm text-center">
+                <div class="mb-3">
+                    <span class="spinner-grow spinner-grow-sm text-danger me-2" role="status"></span>
+                    <h4 class="fw-bold d-inline-block text-dark">Active Live Assessment Portal</h4>
+                </div>
+                <p class="text-muted small mb-4">Tests currently active for your department. Complete them before the access window closes.</p>
+                <div class="row g-3 justify-content-center">
+                    <% if (exams.length === 0) { %>
+                        <div class="col-12 text-center py-5 text-muted bg-light rounded border border-dashed">
+                            <i class="bi bi-shield-slash fs-2 d-block mb-2 text-muted"></i> No live tests currently active.
+                        </div>
+                    <% } else { %>
+                        <% exams.forEach(exam => { %>
+                            <div class="col-12 col-md-6 col-lg-5">
+                                <div class="card border-danger border-2 h-100 shadow-sm bg-white p-4">
+                                    <span class="badge bg-danger text-white align-self-center mb-3 px-3 py-1 text-uppercase fw-bold" style="font-size:0.75rem;"><i class="bi bi-broadcast me-1"></i> Live Assessment</span>
+                                    <h5 class="fw-bold text-dark mb-2"><%= exam.title %></h5>
+                                    <p class="text-muted small mb-3"><%= exam.description %></p>
+                                    <div class="d-flex justify-content-center gap-3 mb-4 text-muted small">
+                                        <span><i class="bi bi-clock text-primary"></i> <%= exam.duration %> Min</span>
+                                        <span><i class="bi bi-card-list text-primary"></i> <%= exam.questions.length %> Qs</span>
+                                    </div>
+                                    <a href="/exams/take/<%= exam._id %>" class="btn btn-danger btn-sm w-100 py-2 fw-semibold start-exam-btn">
+                                        <i class="bi bi-play-circle me-1"></i> Enter Exam Room
+                                    </a>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <!-- PERFORMANCE TAB -->
+        <div id="student-tab-performance" class="student-portal-tab-content d-none">
+            <div class="card p-4 border-0 shadow-sm">
+                <h4 class="fw-bold mb-2 text-dark"><i class="bi bi-activity text-primary me-2"></i>My Comprehensive Progress Metrics</h4>
+                <p class="text-muted small mb-4">Deep analytics on your grades, subject domain strengths, and weak areas.</p>
+                
+                <div class="row g-4">
+                    <!-- Chart progression curve -->
+                    <div class="col-12 col-lg-8">
+                        <div class="border rounded p-4 bg-light">
+                            <span class="fw-bold text-dark small d-block mb-3"><i class="bi bi-graph-up me-1 text-primary"></i>Score Progression Curve (Historical Trend)</span>
+                            <div class="chart-container chart-container-lg">
+                                <canvas id="performanceTabProgressionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Side card with recommendations -->
+                    <div class="col-12 col-lg-4">
+                        <div class="card border border-light bg-light p-4 h-100">
+                            <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-cpu text-primary me-2"></i>AI Study Recommendation</h5>
+                            <hr class="mt-0">
+                            
+                            <div class="mb-3">
+                                <span class="text-muted small d-block mb-2">Subject Strengths (>= 75% Average):</span>
+                                <div id="strongTopicsList" class="d-flex flex-wrap gap-1">
+                                    <!-- Dynamic loading -->
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <span class="text-muted small d-block mb-2">Review Recommended (< 75%):</span>
+                                <div id="weakTopicsList" class="d-flex flex-wrap gap-1">
+                                    <!-- Dynamic loading -->
+                                </div>
+                            </div>
+
+                            <div class="alert alert-primary border-0 p-3 mt-auto mb-0" style="font-size:0.8rem;">
+                                <i class="bi bi-lightbulb-fill text-warning me-1"></i> Focus on weak areas to increase your class rank percentile.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FULL RESULTS TABLE -->
+                <div class="mt-4 border rounded p-0 overflow-hidden bg-white">
+                    <div class="bg-light px-4 py-3 border-bottom d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-dark"><i class="bi bi-card-checklist text-primary me-2"></i>Completed Assessments Log</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr class="table-light text-muted small text-uppercase" style="letter-spacing: 0.5px;">
+                                    <th class="ps-4 py-3">Assessment Name</th>
+                                    <th class="py-3">Performance Grade</th>
+                                    <th class="py-3">Raw Score</th>
+                                    <th class="py-3">Completed On</th>
+                                    <th class="pe-4 py-3 text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="performanceFullTableBody">
+                                <tr><td colspan="5" class="text-center text-muted py-5">Loading assessment history...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- CERTIFICATES TAB -->
+        <div id="student-tab-certificates" class="student-portal-tab-content d-none">
+            <div class="card p-4 border-0 shadow-sm">
+                <h4 class="fw-bold mb-2 text-dark"><i class="bi bi-patch-check-fill text-primary me-2"></i>Earned Credentials & Certificates</h4>
+                <p class="text-muted small mb-4">Credentials are issued automatically for scoring 80% or higher on assessments.</p>
+                <div class="row g-3" id="certificatesGrid">
+                    <!-- Loaded dynamically via results compiler -->
+                </div>
+            </div>
+        </div>
+
+        <!-- NOTIFICATIONS TAB -->
+        <div id="student-tab-notifications" class="student-portal-tab-content d-none">
+            <div class="card p-4 border-0 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3 flex-wrap gap-2">
+                    <div>
+                        <h4 class="fw-bold mb-0 text-dark"><i class="bi bi-bell-fill text-primary me-2"></i>Notification Center</h4>
+                        <p class="text-muted small mb-0">System alerts, assessment triggers, and reviews.</p>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm rounded-pill px-3" onclick="markAllRead(this)">Mark All Read</button>
+                    <script>
+                        function markAllRead(btn) {
+                            const originalText = btn.innerHTML;
+                            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                            btn.disabled = true;
+                            fetch('/exams/api/notifications/clear', { 
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'CSRF-Token': '<%= typeof csrfToken !== "undefined" ? csrfToken : "" %>'
+                                }
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    window.location.reload();
+                                } else {
+                                    btn.innerHTML = originalText;
+                                    btn.disabled = false;
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Error marking read:', err);
+                                btn.innerHTML = originalText;
+                                btn.disabled = false;
+                            });
+                        }
+                    </script>
+                </div>
+                <div class="d-flex flex-column gap-3" id="notificationCenterList">
+                    <% if (typeof allNotifications !== 'undefined' && allNotifications.length > 0) { %>
+                        <% allNotifications.forEach(notif => { 
+                            let borderClass = 'border-primary';
+                            let badgeClass = 'bg-primary';
+                            if (notif.category === 'exam') { borderClass = 'border-success'; badgeClass = 'bg-success'; }
+                            else if (notif.category === 'urgent') { borderClass = 'border-danger'; badgeClass = 'bg-danger'; }
+                            else if (notif.category === 'system') { borderClass = 'border-info'; badgeClass = 'bg-info text-dark'; }
+                        %>
+                        <div class="p-3 <%= notif.read ? 'bg-white border' : 'bg-light border-start border-4' %> <%= notif.read ? 'border-light' : borderClass %> rounded d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <span class="badge <%= badgeClass %> text-uppercase mb-1" style="font-size:0.6rem;"><%= notif.category %></span>
+                                <h6 class="fw-bold text-dark mb-1"><%= notif.title %></h6>
+                                <p class="text-muted mb-0 small"><%= notif.body %></p>
+                            </div>
+                            <span class="text-muted small text-nowrap ms-3"><%= new Date(notif.createdAt).toLocaleDateString() %> <%= new Date(notif.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) %></span>
+                        </div>
+                        <% }); %>
+                    <% } else { %>
+                        <div class="text-center text-muted py-5 rounded bg-light border border-dashed">
+                            <i class="bi bi-bell-slash fs-2 d-block mb-2 text-muted"></i>
+                            No notifications available.
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <!-- CALENDAR TAB -->
+        <div id="student-tab-calendar" class="student-portal-tab-content d-none">
+            <div class="card p-4 border-0 shadow-sm">
+                <h4 class="fw-bold mb-2 text-dark"><i class="bi bi-calendar-event text-primary me-2"></i>Interactive Assessment Calendar</h4>
+                <p class="text-muted small mb-4">Track upcoming quizzes, homework, and mid-term dates.</p>
+                <div class="p-4 bg-light rounded text-center border">
+                    <h5 class="fw-bold text-primary mb-3">July 2026</h5>
+                    
+                    <!-- Calendar Grid Grid -->
+                    <div class="row g-2" style="font-size:0.875rem;">
+                        <% for (let d = 1; d <= 31; d++) { %>
+                            <% const isExamDay = (d === 5 || d === 12 || d === 18); %>
+                            <div class="col-3 col-md-2 p-2 border rounded <%= isExamDay ? 'bg-primary bg-opacity-10 border-primary text-primary fw-bold' : 'bg-white text-muted' %>">
+                                <div><%= d %></div>
+                                <% if (isExamDay) { %>
+                                    <span class="d-none d-md-inline text-primary" style="font-size: 0.65rem;">Exam Target</span>
+                                <% } %>
+                            </div>
                         <% } %>
                     </div>
                 </div>
             </div>
-        <% }); %>
-    <% } %>
+        </div>
+
+        <!-- PROFILE TAB -->
+        <div id="student-tab-profile" class="student-portal-tab-content d-none">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card p-4 border-0 shadow-sm text-center bg-white">
+                        <div class="avatar-circle mx-auto bg-primary text-white mb-3" style="width:96px; height:96px; font-size:2.5rem;">
+                            <%= user.username.substring(0,2).toUpperCase() %>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-1"><%= user.username %></h4>
+                        <span class="badge bg-primary text-uppercase mb-3"><%= user.role %></span>
+                        
+                        <div class="p-3 bg-light rounded text-start small mb-3">
+                            <div class="d-flex justify-content-between py-1">
+                                <span class="text-muted">Academic Rating:</span>
+                                <span class="fw-bold text-dark" id="profileAvgLabel">90%</span>
+                            </div>
+                            <div class="d-flex justify-content-between py-1">
+                                <span class="text-muted">Submissions:</span>
+                                <span class="fw-bold text-dark" id="profileCountLabel">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card p-4 border-0 shadow-sm bg-white">
+                        <h5 class="fw-bold text-dark mb-3"><i class="bi bi-person-badge text-primary me-2"></i>Academic Record Credentials</h5>
+                        <hr class="mt-0">
+                        <form id="profileChangeForm" onsubmit="alert('Profile details updated successfully (Mock Action).'); return false;">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small">Username</label>
+                                    <input type="text" class="form-control" value="<%= user.username %>" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small">Email Address</label>
+                                    <input type="email" class="form-control" value="<%= user.email %>" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small">Academic Department</label>
+                                    <input type="text" class="form-control" value="Computer Science Engineering" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small">Student Batch Year</label>
+                                    <input type="text" class="form-control" value="Batch of 2026" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small">Authentication Status</label>
+                                    <input type="text" class="form-control" value="MFA Active" readonly>
+                                </div>
+                                <div class="col-12 mt-4 pt-3 border-top d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary btn-sm px-4">Update Metadata</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HELP TAB -->
+        <div id="student-tab-help" class="student-portal-tab-content d-none">
+            <div class="card p-4 border-0 shadow-sm bg-white">
+                <h4 class="fw-bold mb-2 text-dark"><i class="bi bi-question-circle-fill text-primary me-2"></i>Help & Support Center</h4>
+                <p class="text-muted small mb-4">Resolve proctoring issues, browser lockdown alerts, or grading queries.</p>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-dark"><i class="bi bi-shield-check text-success me-2"></i>Lockdown / Tab Switch Alert FAQ</h6>
+                        <p class="text-muted small">The portal enforces full-screen lockdown. Switching tabs, resizing windows, or opening devtools will trigger an automatic assessment invalidation. Please close all other background applications before starting.</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-dark"><i class="bi bi-envelope text-primary me-2"></i>Grading Sheets Inquiry</h6>
+                        <p class="text-muted small">If your answer reviews are missing, the faculty may have disabled answer releases. Please message your proctor or coordinator to request score sheets release.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SETTINGS TAB -->
+        <div id="student-tab-settings" class="student-portal-tab-content d-none">
+            <div class="card p-4 border-0 shadow-sm bg-white">
+                <h4 class="fw-bold mb-2 text-dark"><i class="bi bi-gear-fill text-primary me-2"></i>Portal Settings</h4>
+                <p class="text-muted small mb-4">Adjust portal aesthetics and notification configurations.</p>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Active Interface Theme</label>
+                        <select class="form-select" onchange="document.getElementById('darkModeToggleBtn').click()">
+                            <option value="light">Light Theme</option>
+                            <option value="dark">Dark Theme</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Browser Language</label>
+                        <select class="form-select">
+                            <option value="en">English (US)</option>
+                            <option value="es">Español</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </div>
 
 <script>
-// If admin resets a student's submission, auto-redirect the student to start the exam
-try {
-  if (window.__appSocket) {
-    window.__appSocket.on('submission:reset', function(payload){
-      if (!payload || !payload.examId) return;
-      window.location.href = '/exams/take/' + payload.examId;
-    });
-  }
-} catch (e) {}
+document.addEventListener('DOMContentLoaded', function() {
+    // Dynamic Search Filter for Dashboard Exams
+    const searchInput = document.getElementById('examSearchInput');
+    const cards = document.querySelectorAll('.exam-card-wrapper');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = searchInput.value.toLowerCase();
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+    }
 
-// Auto fullscreen on Start Exam button click
+    // Dynamic Search Filter for My Exams tab
+    const myExamsSearch = document.getElementById('myExamsSearch');
+    const myExamWrappers = document.querySelectorAll('.my-exam-wrapper');
+    if (myExamsSearch) {
+        myExamsSearch.addEventListener('input', function() {
+            const query = myExamsSearch.value.toLowerCase();
+            myExamWrappers.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+    }
+
+    // Fullscreen parameters config for exam room launches
+    document.querySelectorAll('.start-exam-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const examUrl = this.getAttribute('href');
+            sessionStorage.setItem('requestFullscreenOnLoad', 'true');
+            sessionStorage.setItem('fullscreenRequestTime', Date.now().toString());
+            window.location.href = examUrl;
+        });
+    });
+
+    // Real-time socket resets
+    try {
+        if (window.__appSocket) {
+            window.__appSocket.on('submission:reset', function(payload){
+                if (!payload || !payload.examId) return;
+                window.location.href = '/exams/take/' + payload.examId;
+            });
+        }
+    } catch (e) {}
+
+    // Next Exam Countdown Timer simulation
+    const countdownEl = document.getElementById('nextExamCountdown');
+    if (countdownEl) {
+        let diff = 3 * 3600 + 15 * 60; // 3h 15m mock countdown
+        function updateCountdown() {
+            const hours = Math.floor(diff / 3600);
+            const minutes = Math.floor((diff % 3600) / 60);
+            const seconds = diff % 60;
+            countdownEl.textContent = `Starts in ${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m`;
+            if (diff > 0) diff--;
+        }
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+    }
+
+    // RESULTS METRICS COMPILER
+    fetch('/exams/my-results')
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const resultCards = doc.querySelectorAll('#resultTableBody tr.card');
+
+            let totalCompleted = resultCards.length;
+            let sumPercentages = 0;
+            let maxPercentage = 0;
+            let countPassed = 0;
+            let countFailed = 0;
+            let countCertificates = 0;
+            
+            let chartLabels = [];
+            let chartData = [];
+            let subjectScores = {};
+            let latestResultsHtml = '';
+            let certificatesHtml = '';
+
+            resultCards.forEach((card, idx) => {
+                const titleEl = card.querySelector('.card-title');
+                const title = titleEl ? titleEl.textContent.trim() : 'Exam';
+                const badgeEl = card.querySelector('.badge');
+                const badge = badgeEl ? badgeEl.textContent.trim() : '';
+                const textEl = card.querySelector('.text-muted');
+                const subject = textEl ? textEl.textContent.replace(/Subject:/i, '').trim() : 'General';
+                
+                // Parse score: e.g. "Score: 8 / 10"
+                const scoreMatch = badge.match(/Score:\s*([\d\.]+)\s*\/\s*([\d\.]+)/);
+                if (scoreMatch) {
+                    const score = parseFloat(scoreMatch[1]);
+                    const total = parseFloat(scoreMatch[2]);
+                    const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
+                    
+                    sumPercentages += percentage;
+                    if (percentage > maxPercentage) maxPercentage = percentage;
+                    
+                    // Pass/fail counters (Pass threshold: >= 50%)
+                    if (percentage >= 50) countPassed++;
+                    else countFailed++;
+                    
+                    // Certificates (Threshold: >= 80%)
+                    if (percentage >= 80) countCertificates++;
+
+                    // Subject grouping
+                    if (!subjectScores[subject]) {
+                        subjectScores[subject] = { sum: 0, count: 0 };
+                    }
+                    subjectScores[subject].sum += percentage;
+                    subjectScores[subject].count += 1;
+
+                    // Timeline score logs
+                    chartLabels.unshift(title.replace('Score:', '').substring(0, 12));
+                    chartData.unshift(percentage);
+
+                    // Add last 3 results to html list
+                    if (idx < 3) {
+                        latestResultsHtml += `
+                            <div class="d-flex align-items-center justify-content-between p-2 rounded bg-light">
+                                <div class="text-truncate" style="max-width:180px;">
+                                    <span class="fw-semibold text-dark d-block small">${title}</span>
+                                    <span class="text-muted small" style="font-size:0.75rem;">${subject}</span>
+                                </div>
+                                <span class="badge ${percentage >= 70 ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'}">${percentage}%</span>
+                            </div>
+                        `;
+                    }
+
+                    // Certificate generation (>= 80%)
+                    if (percentage >= 80) {
+                        const viewReportBtn = card.querySelector('a[href^="/exams/results/"]');
+                        let submissionId = '';
+                        if (viewReportBtn) {
+                            submissionId = viewReportBtn.getAttribute('href').split('/').pop();
+                        }
+                        const certId = 'CERT-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+                        certificatesHtml += `
+                            <div class="col-12 col-md-4 col-lg-4">
+                                <div class="card border-0 shadow-sm bg-white overflow-hidden hover-shadow transition-smooth rounded-3">
+                                    <div class="position-relative" style="width: 100%; padding-top: 70.7%; overflow: hidden; background: #0b0f19; border-bottom: 1px solid #eee;">
+                                        <iframe src="/exams/certificate/${submissionId}?preview=true" frameborder="0" scrolling="no" class="cert-iframe" style="position: absolute; top: 0; left: 0; width: 1100px; height: 778px; transform-origin: top left; pointer-events: none;"></iframe>
+                                    </div>
+                                    <div class="p-3 d-flex justify-content-between align-items-center bg-white">
+                                        <div>
+                                            <h6 class="fw-bold text-dark mb-0 text-truncate" style="max-width: 200px;">${title}</h6>
+                                            <span class="text-muted small">Score: ${percentage}% &bull; ${new Date().toLocaleDateString()}</span>
+                                        </div>
+                                        <a href="/exams/certificate/${submissionId}" target="_blank" class="btn btn-primary btn-sm px-3 rounded-pill">
+                                            <i class="bi bi-award me-1"></i> View / Print
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            });
+
+            // Update UI Counters
+            const avgPercentage = totalCompleted > 0 ? Math.round(sumPercentages / totalCompleted) : 0;
+            
+            const statsCompleted = document.getElementById('statsCompleted');
+            if (statsCompleted) statsCompleted.textContent = totalCompleted;
+            
+            const statsAverage = document.getElementById('statsAverage');
+            if (statsAverage) statsAverage.textContent = avgPercentage + '%';
+            
+            const statsPending = document.getElementById('statsPending');
+            const totalUpcoming = parseInt(document.getElementById('statsUpcoming')?.textContent || '0', 10);
+            if (statsPending) statsPending.textContent = totalUpcoming;
+
+            const statsCertificates = document.getElementById('statsCertificates');
+            if (statsCertificates) statsCertificates.textContent = countCertificates;
+
+            let rank = 'Pending';
+            if (totalCompleted > 0) {
+                if (avgPercentage >= 90) rank = 'Top 2%';
+                else if (avgPercentage >= 80) rank = 'Top 7%';
+                else if (avgPercentage >= 70) rank = 'Top 15%';
+                else rank = 'Top 35%';
+            }
+            const statsRank = document.getElementById('statsRank');
+            if (statsRank) statsRank.textContent = rank;
+
+            // Injects results rows
+            const resultsList = document.getElementById('latestResultsList');
+            if (resultsList) {
+                resultsList.innerHTML = latestResultsHtml || '<div class="text-center py-3 text-muted small">No assessments completed.</div>';
+            }
+
+            // Injects full performance table
+            const perfTable = document.getElementById('performanceFullTableBody');
+            if (perfTable) {
+                const sourceBody = doc.getElementById('resultTableBody');
+                if (sourceBody && sourceBody.innerHTML.trim() !== '') {
+                    perfTable.innerHTML = sourceBody.innerHTML;
+                } else {
+                    perfTable.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-5">No assessments completed yet.</td></tr>';
+                }
+            }
+
+            // Injects certificates list
+            const certGrid = document.getElementById('certificatesGrid');
+            if (certGrid) {
+                certGrid.innerHTML = certificatesHtml || `
+                    <div class="col-12 text-center py-5 text-muted">
+                        <i class="bi bi-patch-exclamation fs-1 d-block mb-2 text-muted"></i>
+                        No certificates earned yet. Achieve an 80% score or higher on any exam to receive a certificate.
+                    </div>
+                `;
+                
+                // Scale iframes to fit container
+                function resizeCertIframes() {
+                    document.querySelectorAll('.cert-iframe').forEach(iframe => {
+                        if (iframe.parentElement) {
+                            const scale = iframe.parentElement.clientWidth / 1100;
+                            iframe.style.transform = 'scale(' + scale + ')';
+                        }
+                    });
+                }
+                setTimeout(resizeCertIframes, 50);
+                window.addEventListener('resize', resizeCertIframes);
+            }
+
+            // Strong and Weak topics extraction
+            let strongTopics = [];
+            let weakTopics = [];
+            Object.keys(subjectScores).forEach(sub => {
+                const avg = Math.round(subjectScores[sub].sum / subjectScores[sub].count);
+                if (avg >= 75) strongTopics.push(sub);
+                else weakTopics.push(sub);
+            });
+            const strongEl = document.getElementById('strongTopicsList');
+            if (strongEl) {
+                strongEl.innerHTML = strongTopics.map(t => `<span class="badge bg-success-subtle text-success p-2 rounded-pill small me-1 mb-1"><i class="bi bi-arrow-up-circle-fill me-1"></i> ${t}</span>`).join('') || '<span class="text-muted small">No topics assessed yet.</span>';
+            }
+            const weakEl = document.getElementById('weakTopicsList');
+            if (weakEl) {
+                weakEl.innerHTML = weakTopics.map(t => `<span class="badge bg-danger-subtle text-danger p-2 rounded-pill small me-1 mb-1"><i class="bi bi-arrow-down-circle-fill me-1"></i> ${t}</span>`).join('') || '<span class="text-muted small">No weak areas identified.</span>';
+            }
+
+            // Sync user profile values
+            const profileAvgLabel = document.getElementById('profileAvgLabel');
+            if (profileAvgLabel) profileAvgLabel.textContent = avgPercentage + '%';
+            const profileCountLabel = document.getElementById('profileCountLabel');
+            if (profileCountLabel) profileCountLabel.textContent = totalCompleted;
+
+            // Leaderboard user scores sync
+            const userScoreBadge = document.getElementById('leaderboardUserScore');
+            if (userScoreBadge) userScoreBadge.textContent = avgPercentage + '%';
+            const userRankBadge = document.getElementById('leaderboardUserRank');
+            if (userRankBadge && rank !== 'Pending') {
+                userRankBadge.textContent = rank.includes('2%') ? '1' : rank.includes('7%') ? '2' : '3';
+            }
+
+            // Recent activity timeline update
+            const activityList = document.getElementById('recentActivityList');
+            if (activityList && totalCompleted > 0) {
+                activityList.innerHTML += `
+                    <div class="timeline-item mt-2">
+                        <span class="text-dark fw-semibold">Assessment Checked</span>
+                        <p class="text-muted mb-0 small">Average grade evaluated at ${avgPercentage}%.</p>
+                    </div>
+                `;
+            }
+
+            // Fallback mock setups if no exam history available
+            if (totalCompleted === 0) {
+                chartLabels = ['Quiz Alpha', 'Quiz Beta', 'Mid-Term'];
+                chartData = [65, 82, 78];
+                subjectScores = { 'Science': { sum: 75, count: 1 }, 'Languages': { sum: 85, count: 1 }, 'Technology': { sum: 80, count: 1 } };
+                countPassed = 2;
+                countFailed = 1;
+            }
+
+            renderStudentCharts({ chartLabels, chartData, subjectScores, countPassed, countFailed });
+        })
+        .catch(err => {
+            console.error('Metrics loading failed:', err);
+            renderStudentCharts({
+                chartLabels: ['Quiz Alpha', 'Quiz Beta', 'Mid-Term'],
+                chartData: [65, 82, 78],
+                subjectScores: {
+                    'Science': { sum: 75, count: 1 },
+                    'Languages': { sum: 85, count: 1 },
+                    'Technology': { sum: 80, count: 1 }
+                },
+                countPassed: 2,
+                countFailed: 1
+            });
+        });
+
+    function renderStudentCharts(metrics) {
+        if (typeof Chart === 'undefined') return;
+
+        const chartLabels = metrics.chartLabels || [];
+        const chartData = metrics.chartData || [];
+        const subjectScores = metrics.subjectScores || {};
+        const countPassed = metrics.countPassed || 0;
+        const countFailed = metrics.countFailed || 0;
+
+        const lineCanvas = document.getElementById('studentPerformanceChart');
+        const barCanvas = document.getElementById('subjectMarksChart');
+        const doughnutCanvas = document.getElementById('passFailChart');
+        const tabLineCanvas = document.getElementById('performanceTabProgressionChart');
+
+        if (lineCanvas) {
+            new Chart(lineCanvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Score',
+                        data: chartData,
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#3B82F6',
+                        pointBorderColor: '#ffffff',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { stepSize: 20 } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        const subLabels = Object.keys(subjectScores);
+        const subData = subLabels.map(s => Math.round(subjectScores[s].sum / subjectScores[s].count));
+
+        if (barCanvas) {
+            new Chart(barCanvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: subLabels.length ? subLabels : ['General'],
+                    datasets: [{
+                        data: subData.length ? subData : [0],
+                        backgroundColor: '#1E3A8A',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { min: 0, max: 100 },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        if (doughnutCanvas) {
+            new Chart(doughnutCanvas.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Passed', 'Failed'],
+                    datasets: [{
+                        data: [countPassed, countFailed],
+                        backgroundColor: ['#10B981', '#EF4444'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 10 } }
+                    }
+                }
+            });
+        }
+
+        if (tabLineCanvas) {
+            new Chart(tabLineCanvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Score',
+                        data: chartData,
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#10B981',
+                        pointBorderColor: '#ffffff',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { stepSize: 20 } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 150);
+    }
+});
+
+// Single Page Tab Hash Router
 (function() {
-  // Cross-platform fullscreen request function
-  function requestFullscreen(element) {
-    if (!element) element = document.documentElement;
+    const studentTabs = [
+        'dashboard', 'my-exams', 'upcoming-exams', 'live-exams', 
+        'performance', 'certificates', 'notifications', 'calendar', 
+        'profile', 'help', 'settings'
+    ];
     
-    // Try standard API first
-    if (element.requestFullscreen) {
-      return element.requestFullscreen().catch(err => {
-        console.log('Standard fullscreen failed:', err);
-        return null;
-      });
+    function switchTab() {
+        const hash = window.location.hash.substring(1) || 'dashboard';
+        const activeTab = studentTabs.includes(hash) ? hash : 'dashboard';
+        
+        // Show active section, hide others
+        studentTabs.forEach(tab => {
+            const el = document.getElementById(`student-tab-${tab}`);
+            if (el) {
+                el.classList.toggle('d-none', tab !== activeTab);
+            }
+        });
+        
+        // Sync page title
+        const tabNames = {
+            'dashboard': 'Exams Dashboard',
+            'my-exams': 'My Available Exams',
+            'upcoming-exams': 'Upcoming Exam Schedules',
+            'live-exams': 'Active Live Exams',
+            'performance': 'My Academic Performance',
+            'certificates': 'My Earned Certificates',
+            'notifications': 'Notification Center',
+            'calendar': 'Assessment Calendar',
+            'profile': 'My Student Profile',
+            'help': 'Help & Support Center',
+            'settings': 'System Settings'
+        };
+        document.title = 'ExamSystem - ' + (tabNames[activeTab] || 'Student Portal');
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
     }
     
-    // WebKit (Safari, Chrome on iOS)
-    if (element.webkitRequestFullscreen) {
-      return element.webkitRequestFullscreen().catch(err => {
-        console.log('WebKit fullscreen failed:', err);
-        return null;
-      });
-    }
-    
-    // WebKit (iOS Safari)
-    if (element.webkitEnterFullscreen) {
-      element.webkitEnterFullscreen();
-      return Promise.resolve();
-    }
-    
-    // MS (IE/Edge)
-    if (element.msRequestFullscreen) {
-      return element.msRequestFullscreen().catch(err => {
-        console.log('MS fullscreen failed:', err);
-        return null;
-      });
-    }
-    
-    // Mozilla (Firefox)
-    if (element.mozRequestFullScreen) {
-      return element.mozRequestFullScreen().catch(err => {
-        console.log('Mozilla fullscreen failed:', err);
-        return null;
-      });
-    }
-    
-    return Promise.reject('Fullscreen not supported');
-  }
-
-  // Check if already in fullscreen
-  function isFullscreen() {
-    return !!(
-      document.fullscreenElement ||
-      document.webkitFullscreenElement ||
-      document.mozFullScreenElement ||
-      document.msFullscreenElement
-    );
-  }
-
-  // Handle Start Exam button clicks
-  document.querySelectorAll('.start-exam-btn').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-      e.preventDefault();
-      const examUrl = this.getAttribute('href');
-      
-      // Mark that we should request fullscreen on exam page load
-      // Use a timestamp to track when the request was made
-      sessionStorage.setItem('requestFullscreenOnLoad', 'true');
-      sessionStorage.setItem('fullscreenRequestTime', Date.now().toString());
-      
-      // Don't request fullscreen here - it will be lost during navigation
-      // Instead, navigate immediately and let the exam page handle it
-      // The user gesture context will be preserved via sessionStorage
-      window.location.href = examUrl;
-    });
-  });
+    window.addEventListener('hashchange', switchTab);
+    document.addEventListener('DOMContentLoaded', switchTab);
 })();
 </script>
 

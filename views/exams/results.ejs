@@ -1,114 +1,167 @@
 <%- include('../partials/header', { title: 'Exam Results' }) %>
 
-<div class="row">
-    <div class="col-12">
-        <h2 class="mb-4">
-            <i class="bi bi-award"></i> Exam Results
-        </h2>
-    </div>
-</div>
+<% 
+  const scorePct = submission.totalQuestions > 0 ? Math.round((submission.score / submission.totalQuestions) * 100) : 0;
+  const correctCount = submission.answers.filter(a => a.isCorrect).length;
+  const incorrectCount = submission.totalQuestions - correctCount;
+  const passes = scorePct >= 50;
+%>
 
-<div class="row">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title"><%= submission.exam.title %></h4>
-                <p class="card-text"><%= submission.exam.description %></p>
-                
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <div class="alert alert-success">
-                            <h5>Your Score</h5>
-                            <h2><%= submission.score %> / <%= submission.totalQuestions %></h2>
-                            <p>Percentage: <%= Math.round((submission.score / submission.totalQuestions) * 100) %>%</p>
-                        </div>
+<div class="row g-4 d-print-block">
+    <!-- HEADER -->
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pb-3 border-bottom d-print-none">
+            <div>
+                <h2 class="mb-1 fw-bold text-dark"><i class="bi bi-award text-primary me-2"></i>Performance Report</h2>
+                <p class="text-muted small mb-0">Detailed accuracy metric logs, score breakdowns, and question sheets.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary btn-sm" onclick="window.print()"><i class="bi bi-printer me-1"></i> Print Report</button>
+                <a href="/exams/my-results" class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-left me-1"></i> Results History</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN SCORING CARD -->
+    <div class="col-12 col-lg-8">
+        <div class="card p-4 border-0 shadow-sm mb-4 bg-white">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                <div>
+                    <span class="badge bg-primary-subtle text-primary mb-2 text-uppercase fw-semibold" style="font-size: 0.7rem;"><%= submission.exam.subject || 'General Domain' %></span>
+                    <h3 class="fw-bold text-dark mb-1"><%= submission.exam.title %></h3>
+                    <p class="text-muted small mb-0"><%= submission.exam.description %></p>
+                </div>
+                <span class="badge bg-<%= passes ? 'success' : 'danger' %>-subtle text-<%= passes ? 'success' : 'danger' %> px-3 py-2 text-uppercase fw-bold" style="font-size:0.8rem;">
+                    <%= passes ? 'Passed' : 'Failed' %>
+                </span>
+            </div>
+            
+            <div class="row g-3 mt-1">
+                <div class="col-md-6">
+                    <div class="card border border-light bg-light p-4 h-100 text-center d-flex flex-column justify-content-center">
+                        <span class="text-uppercase text-muted fw-bold small tracking-wider mb-2">Success Rate</span>
+                        <div class="display-3 fw-bold text-<%= passes ? 'success' : 'danger' %> mb-1"><%= scorePct %>%</div>
+                        <div class="fw-semibold text-muted small"><%= submission.score %> of <%= submission.totalQuestions %> Correct Answers</div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="alert alert-info">
-                            <h5>Exam Details</h5>
-                            <p><strong>Submitted:</strong> <%= new Date(submission.submittedAt).toLocaleString() %></p>
-                            <p><strong>Total Questions:</strong> <%= submission.totalQuestions %></p>
-                            <p><strong>Correct Answers:</strong> <%= submission.answers.filter(a => a.isCorrect).length %></p>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border border-light bg-light p-4 h-100 d-flex flex-column justify-content-center">
+                        <span class="text-uppercase text-muted fw-bold small tracking-wider mb-3">Submission Details</span>
+                        <div class="d-flex flex-column gap-2" style="font-size: 0.875rem;">
+                            <div class="d-flex justify-content-between py-1 border-bottom border-light">
+                                <span class="text-muted">Username:</span>
+                                <span class="fw-bold text-dark"><%= submission.user ? submission.user.username : 'Student' %></span>
+                            </div>
+                            <div class="d-flex justify-content-between py-1 border-bottom border-light">
+                                <span class="text-muted">Questions Count:</span>
+                                <span class="fw-semibold text-dark"><%= submission.totalQuestions %></span>
+                            </div>
+                            <div class="d-flex justify-content-between py-1">
+                                <span class="text-muted">Submitted At:</span>
+                                <span class="fw-semibold text-dark"><%= new Date(submission.submittedAt).toLocaleDateString([], {day: '2-digit', month: 'short', year: 'numeric'}) %></span>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <h5 class="mt-4">Question Review</h5>
-                <% submission.answers.forEach((answer, index) => { %>
-                    <div class="card mb-3 <%= answer.isCorrect ? 'border-success' : 'border-danger' %>">
-                        <div class="card-body">
-                            <h6 class="card-title">
-                                Question <%= index + 1 %>
-                                <% if (answer.isCorrect) { %>
-                                    <span class="badge bg-success">Correct</span>
-                                <% } else { %>
-                                    <span class="badge bg-danger">Incorrect</span>
-                                <% } %>
-                            </h6>
-                            <p class="card-text mb-2"><%= answer.question.question %></p>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <strong>Your Answer:</strong>
-                                    <div class="ms-3 <%= answer.isCorrect ? 'text-success' : 'text-danger' %>">
-                                        <% if (answer.selectedOption !== null && answer.selectedOption !== undefined && answer.question && Array.isArray(answer.question.options) && answer.question.options.length) { %>
-                                            <%= answer.question.options[answer.selectedOption] !== undefined ? answer.question.options[answer.selectedOption] : '-' %>
-                                        <% } else { %>
-                                            <%= answer.textAnswer || '-' %>
-                                        <% } %>
-                                    </div>
+        <!-- QUESTION REVIEW -->
+        <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-list-check text-primary me-2"></i>Question Evaluation Sheet</h5>
+        <div class="d-flex flex-column gap-3">
+            <% submission.answers.forEach((answer, index) => { %>
+                <div class="card shadow-sm border-start border-4 <%= answer.isCorrect ? 'border-success' : 'border-danger' %> p-4 bg-white">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold text-muted small">QUESTION <%= index + 1 %></span>
+                        <% if (answer.isCorrect) { %>
+                            <span class="badge bg-success-subtle text-success fw-bold text-uppercase" style="font-size: 0.65rem;"><i class="bi bi-check-circle-fill me-1"></i> Correct</span>
+                        <% } else { %>
+                            <span class="badge bg-danger-subtle text-danger fw-bold text-uppercase" style="font-size: 0.65rem;"><i class="bi bi-x-circle-fill me-1"></i> Incorrect</span>
+                        <% } %>
+                    </div>
+                    <p class="fw-semibold text-dark mb-4 fs-6"><%= answer.question ? answer.question.question : 'Question text' %></p>
+                    
+                    <div class="row g-3">
+                        <!-- USER ANSWER -->
+                        <div class="col-md-6">
+                            <div class="p-3 rounded border <%= answer.isCorrect ? 'bg-success-subtle bg-opacity-10 border-success text-success' : 'bg-danger-subtle bg-opacity-10 border-danger text-danger' %> h-100">
+                                <div class="small fw-semibold text-muted mb-1">Your Answer Selection:</div>
+                                <div class="fw-bold">
+                                    <% if (answer.selectedOption !== null && answer.selectedOption !== undefined && answer.question && Array.isArray(answer.question.options) && answer.question.options.length) { %>
+                                        <%= answer.question.options[answer.selectedOption] !== undefined ? answer.question.options[answer.selectedOption] : '-' %>
+                                    <% } else { %>
+                                        <%= answer.textAnswer || '-' %>
+                                    <% } %>
                                 </div>
-                                <div class="col-md-6" data-correct-ans style="display:<%= (typeof canReveal !== 'undefined' && canReveal) ? '' : 'none' %>">
-                                    <strong>Correct Answer:</strong>
-                                    <div class="ms-3 text-success">
-                                        <% if (answer.question && Array.isArray(answer.question.options) && answer.question.options.length) { %>
-                                            <%= (answer.question.correctAnswer !== null && answer.question.correctAnswer !== undefined && answer.question.options[answer.question.correctAnswer] !== undefined) ? answer.question.options[answer.question.correctAnswer] : 'Not provided' %>
-                                        <% } else if (answer.question && Array.isArray(answer.question.acceptedAnswers) && answer.question.acceptedAnswers.length) { %>
-                                            <%= answer.question.acceptedAnswers.join(', ') %>
-                                        <% } else { %>
-                                            Not provided
-                                        <% } %>
-                                    </div>
+                            </div>
+                        </div>
+                        
+                        <!-- CORRECT ANSWER (Toggleable) -->
+                        <div class="col-md-6" data-correct-ans style="display:<%= (typeof canReveal !== 'undefined' && canReveal) ? '' : 'none' %>">
+                            <div class="p-3 rounded border bg-light border-success-subtle text-success h-100">
+                                <div class="small fw-semibold text-muted mb-1">Correct System Answer:</div>
+                                <div class="fw-bold text-success">
+                                    <% if (answer.question && Array.isArray(answer.question.options) && answer.question.options.length) { %>
+                                        <%= (answer.question.correctAnswer !== null && answer.question.correctAnswer !== undefined && answer.question.options[answer.question.correctAnswer] !== undefined) ? answer.question.options[answer.question.correctAnswer] : 'Not released' %>
+                                    <% } else if (answer.question && Array.isArray(answer.question.acceptedAnswers) && answer.question.acceptedAnswers.length) { %>
+                                        <%= answer.question.acceptedAnswers.join(', ') %>
+                                    <% } else { %>
+                                        Not released
+                                    <% } %>
                                 </div>
                             </div>
                         </div>
                     </div>
-                <% }); %>
-            </div>
+                </div>
+            <% }); %>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Performance Summary</h5>
-                <div class="progress mb-3" style="height: 30px;">
-                    <div class="progress-bar bg-success" role="progressbar" 
-                         style="width: <%= (submission.score / submission.totalQuestions) * 100 %>%"
-                         aria-valuenow="<%= submission.score %>" 
-                         aria-valuemin="0" 
-                         aria-valuemax="<%= submission.totalQuestions %>">
-                        <%= Math.round((submission.score / submission.totalQuestions) * 100) %>%
+
+    <!-- SIDEBAR SUMMARY PANEL -->
+    <div class="col-12 col-lg-4 d-print-none">
+        <div class="card p-4 border-0 shadow-sm sticky-top bg-white" style="top: calc(var(--topbar-height) + 1.5rem); z-index:10;">
+            <h5 class="fw-bold mb-3 text-dark">Accuracy Breakdown</h5>
+            
+            <div class="text-center mb-4">
+                <div class="d-inline-block position-relative">
+                    <svg width="120" height="120" viewBox="0 0 36 36">
+                        <path class="text-light" stroke-width="3" stroke="var(--border-color)" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="text-success" stroke-dasharray="<%= scorePct %>, 100" stroke-width="3" stroke-linecap="round" stroke="<%= passes ? '#10B981' : '#EF4444' %>" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <div class="position-absolute top-50 start-50 translate-middle text-center">
+                        <span class="fs-4 fw-bold text-dark"><%= scorePct %>%</span>
                     </div>
                 </div>
-                <ul class="list-group">
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Correct Answers
-                        <span class="badge bg-success rounded-pill">
-                            <%= submission.answers.filter(a => a.isCorrect).length %>
-                        </span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Incorrect Answers
-                        <span class="badge bg-danger rounded-pill">
-                            <%= submission.answers.filter(a => !a.isCorrect).length %>
-                        </span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Total Points Earned
-                        <span class="badge bg-primary rounded-pill">
-                            <%= submission.score %>
-                        </span>
-                    </li>
-                </ul>
+            </div>
+
+            <ul class="list-group list-group-flush mb-4 text-start">
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0 bg-transparent">
+                    <span class="text-muted"><i class="bi bi-check-circle text-success me-2"></i>Correct</span>
+                    <span class="badge bg-success text-white rounded-pill"><%= correctCount %></span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0 bg-transparent">
+                    <span class="text-muted"><i class="bi bi-x-circle text-danger me-2"></i>Incorrect</span>
+                    <span class="badge bg-danger text-white rounded-pill"><%= incorrectCount %></span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0 bg-transparent">
+                    <span class="text-muted"><i class="bi bi-award text-primary me-2"></i>Total Weight</span>
+                    <span class="badge bg-primary text-white rounded-pill"><%= submission.score * 10 %> pts</span>
+                </li>
+            </ul>
+
+            <!-- Claim Certificate Option -->
+            <% if (scorePct >= 80) { %>
+                <div class="p-3 bg-success bg-opacity-10 border border-success border-opacity-25 rounded mb-4 text-center">
+                    <i class="bi bi-patch-check-fill text-success fs-2 mb-2 d-block"></i>
+                    <h6 class="fw-bold text-success mb-1">Credential Earned!</h6>
+                    <p class="text-muted small mb-3">You earned a Certificate of Achievement for scoring above 80%.</p>
+                    <a href="/exams#certificates" class="btn btn-success btn-sm w-100 fw-semibold rounded-pill">Claim Certificate</a>
+                </div>
+            <% } %>
+
+            <div class="alert alert-warning border-0 p-3 mb-0 small text-start">
+                <i class="bi bi-shield-lock-fill me-2 text-warning"></i>
+                Correct system answers are published instantly once the evaluation window closes.
             </div>
         </div>
     </div>
@@ -117,18 +170,16 @@
 <script>
 try {
   const socket = (typeof window !== 'undefined' && window.__appSocket) ? window.__appSocket : io();
-  // Join exam room so this page updates in real-time when admin toggles reveal
   const examId = '<%= submission.exam ? submission.exam._id : '' %>';
   if (examId) socket.emit('join-exam', examId);
   socket.on('exam:revealAnswers', (payload) => {
     if (!payload || String(payload.examId) !== String(examId)) return;
     const shouldReveal = !!payload.reveal;
-    // Toggle visibility of all correct answer blocks
     document.querySelectorAll('[data-correct-ans]').forEach(el => {
       el.style.display = shouldReveal ? '' : 'none';
     });
   });
-} catch (e) { /* socket optional */ }
+} catch (e) {}
 </script>
 
 <%- include('../partials/footer') %>

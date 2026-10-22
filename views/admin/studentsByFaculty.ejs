@@ -1,97 +1,128 @@
 <%- include('../partials/header', { title: 'Students by Faculty' }) %>
 
-<div class="row">
-  <div class="col-12">
-    <div class="card shadow-sm mb-4">
-      <div class="card-body">
-        <h5 class="card-title">Assign Students to Faculty</h5>
-        <form action="/admin/assign-student-faculty" method="POST" class="row g-2">
-          <div class="col-md-5">
-            <label class="form-label">Student</label>
-            <select name="studentId" class="form-select" required>
-              <% Object.keys(groups).forEach(fid => { %>
-                <% groups[fid].forEach(s => { %>
-                  <option value="<%= s._id %>"><%= s.username %> (<%= s.email %>)</option>
-                <% }) %>
-              <% }) %>
-            </select>
-          </div>
-          <div class="col-md-5">
-            <label class="form-label">Faculty</label>
-            <select name="facultyId" class="form-select">
-              <option value="">Unassigned</option>
-              <% facultyList.forEach(f => { %>
-                <option value="<%= f._id %>"><%= f.username %> - <%= f.department || '' %></option>
-              <% }) %>
-            </select>
-          </div>
-          <div class="col-md-2 d-grid align-items-end">
-            <button class="btn btn-primary" type="submit">Assign</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="row">
-  <% facultyList.forEach(f => { %>
-    <div class="col-md-6 mb-4">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title"><i class="bi bi-person-badge"></i> <%= f.username %> <span class="text-muted" style="font-weight: normal; font-size: 0.9rem;">(<%= f.department || 'No department' %>)</span></h5>
-          <div class="table-responsive">
-            <table class="table table-sm">
-              <thead>
-                <tr><th>Student</th><th>Email</th><th>Joined</th></tr>
-              </thead>
-              <tbody>
-                <% (groups[String(f._id)] || []).forEach(s => { %>
-                  <tr>
-                    <td><%= s.username %></td>
-                    <td><%= s.email %></td>
-                    <td><%= new Date(s.createdAt).toLocaleDateString() %></td>
-                  </tr>
-                <% }) %>
-                <% if (!(groups[String(f._id)] || []).length) { %>
-                  <tr><td colspan="3" class="text-muted">No students assigned</td></tr>
-                <% } %>
-              </tbody>
-            </table>
-          </div>
+<div class="row g-4">
+    <!-- PAGE HEADER -->
+    <div class="col-12">
+        <div class="card p-4 border-0 shadow-sm bg-white">
+            <div class="row align-items-center g-3">
+                <div class="col-12">
+                    <h3 class="fw-bold mb-1 text-dark"><i class="bi bi-person-check text-primary me-2"></i>Student Assignments</h3>
+                    <p class="text-muted small mb-0">Associate students with specific faculty advisors for personalized monitoring.</p>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  <% }) %>
 
-  <div class="col-md-6 mb-4">
-    <div class="card h-100 shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title"><i class="bi bi-person-x"></i> Unassigned</h5>
-        <div class="table-responsive">
-          <table class="table table-sm">
-            <thead>
-              <tr><th>Student</th><th>Email</th><th>Joined</th></tr>
-            </thead>
-            <tbody>
-              <% (groups['unassigned'] || []).forEach(s => { %>
-                <tr>
-                  <td><%= s.username %></td>
-                  <td><%= s.email %></td>
-                  <td><%= new Date(s.createdAt).toLocaleDateString() %></td>
-                </tr>
-              <% }) %>
-              <% if (!(groups['unassigned'] || []).length) { %>
-                <tr><td colspan="3" class="text-muted">No unassigned students</td></tr>
-              <% } %>
-            </tbody>
-          </table>
+    <!-- ASSIGN FORM -->
+    <div class="col-12">
+        <div class="card p-4 border-0 shadow-sm bg-white">
+            <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-link-45deg text-primary me-2"></i>Assign Student to Advisor</h5>
+            <form action="/admin/assign-student-faculty" method="POST" class="row g-3 align-items-end">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <div class="col-md-5 col-12">
+                    <label class="form-label text-muted small fw-bold text-uppercase">Select Student</label>
+                    <select name="studentId" class="form-select bg-light" required>
+                        <% Object.keys(groups).forEach(fid => { %>
+                            <% groups[fid].forEach(s => { %>
+                                <option value="<%= s._id %>"><%= s.username %> (<%= s.email %>)</option>
+                            <% }) %>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="col-md-5 col-12">
+                    <label class="form-label text-muted small fw-bold text-uppercase">Select Faculty Advisor</label>
+                    <select name="facultyId" class="form-select bg-light">
+                        <option value="">-- Unassigned (None) --</option>
+                        <% facultyList.forEach(f => { %>
+                            <option value="<%= f._id %>"><%= f.username %> - <%= f.department || 'Advising' %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="col-md-2 col-12 d-grid">
+                    <button class="btn btn-primary btn-sm py-2 rounded-pill" type="submit"><i class="bi bi-link-45deg"></i> Link Student</button>
+                </div>
+            </form>
         </div>
-      </div>
     </div>
-  </div>
+
+    <!-- FACULTY COLLATED CARDS -->
+    <div class="col-12 mt-2">
+        <div class="row g-3">
+            <% facultyList.forEach(f => { %>
+                <div class="col-12 col-md-6">
+                    <div class="card h-100 table-card border-0 shadow-sm bg-white">
+                        <div class="card-header bg-white border-bottom py-3">
+                            <h5 class="mb-0 fw-bold text-dark">
+                                <i class="bi bi-person-badge text-primary me-2"></i><%= f.username %>
+                                <span class="badge bg-primary-subtle text-primary fw-semibold ms-1" style="font-size: 0.75rem;"><%= f.department || 'General Department' %></span>
+                            </h5>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr class="table-light">
+                                        <th class="py-2 px-3">Student</th>
+                                        <th class="py-2">Email</th>
+                                        <th class="py-2 px-3">Registered</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% (groups[String(f._id)] || []).forEach(s => { %>
+                                        <tr>
+                                            <td class="px-3"><span class="fw-bold text-dark"><%= s.username %></span></td>
+                                            <td class="text-muted small"><%= s.email %></td>
+                                            <td class="text-muted small px-3"><%= new Date(s.createdAt).toLocaleDateString([], {day: '2-digit', month: 'short', year: 'numeric'}) %></td>
+                                        </tr>
+                                    <% }) %>
+                                    <% if (!(groups[String(f._id)] || []).length) { %>
+                                        <tr>
+                                            <td colspan="3" class="text-center py-4 text-muted small">No students assigned.</td>
+                                        </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+
+            <!-- UNASSIGNED STUDENTS CARD -->
+            <div class="col-12 col-md-6">
+                <div class="card h-100 table-card border-0 shadow-sm bg-white" style="border: 1px dashed var(--border-color) !important;">
+                    <div class="card-header bg-transparent border-bottom py-3">
+                        <h5 class="mb-0 fw-bold text-dark">
+                            <i class="bi bi-person-x text-muted me-2"></i>Unassigned Directory
+                        </h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr class="table-light">
+                                    <th class="py-2 px-3">Student</th>
+                                    <th class="py-2">Email</th>
+                                    <th class="py-2 px-3">Registered</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% (groups['unassigned'] || []).forEach(s => { %>
+                                    <tr>
+                                        <td class="px-3"><span class="fw-bold text-dark"><%= s.username %></span></td>
+                                        <td class="text-muted small"><%= s.email %></td>
+                                        <td class="text-muted small px-3"><%= new Date(s.createdAt).toLocaleDateString([], {day: '2-digit', month: 'short', year: 'numeric'}) %></td>
+                                    </tr>
+                                <% }) %>
+                                <% if (!(groups['unassigned'] || []).length) { %>
+                                    <tr>
+                                        <td colspan="3" class="text-center py-4 text-muted small">All students assigned!</td>
+                                    </tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <%- include('../partials/footer') %>
-
-

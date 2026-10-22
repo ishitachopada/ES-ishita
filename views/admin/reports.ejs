@@ -1,206 +1,295 @@
 <%- include('../partials/header', { title: 'Exam Reports' }) %>
 
-<div class="row g-3 align-items-stretch mb-3">
+<div class="row g-4">
+    <!-- PAGE HEADER -->
     <div class="col-12">
-        <h2 class="mb-2"><i class="bi bi-bar-chart"></i> Exam Reports</h2>
-    </div>
-    <div class="col-12 col-sm-6 col-lg-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center gap-2 mb-1">
-                    <i class="bi bi-people fs-4 text-primary"></i>
-                    <span class="text-muted">Total Submissions</span>
+        <div class="card p-4 border-0 shadow-sm bg-white">
+            <div class="row align-items-center g-3">
+                <div class="col-12 col-md-8">
+                    <h3 class="fw-bold mb-1 text-dark"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Submissions & Reports</h3>
+                    <p class="text-muted small mb-0">Review student exam performance metrics, manual grading logs, and export details.</p>
                 </div>
-                <div class="fs-3 fw-bold"><%= submissions.length %></div>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-sm-6 col-lg-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center gap-2 mb-1">
-                    <i class="bi bi-clipboard-check fs-4 text-success"></i>
-                    <span class="text-muted">Average Score</span>
-                </div>
-                <div class="fs-3 fw-bold">
-                    <% if (submissions.length === 0) { %>0<% } else { %>
-                        <%
-                            const avg = (submissions.reduce((a, s) => a + (s.score || 0), 0) / submissions.length).toFixed(2);
-                        %>
-                        <%= avg %>
-                    <% } %>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-sm-6 col-lg-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center gap-2 mb-1">
-                    <i class="bi bi-journal-text fs-4 text-info"></i>
-                    <span class="text-muted">Exams</span>
-                </div>
-                <div class="fs-3 fw-bold"><%= exams.length %></div>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-sm-6 col-lg-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center gap-2 mb-1">
-                    <i class="bi bi-calendar-event fs-4 text-warning"></i>
-                    <span class="text-muted">Latest</span>
-                </div>
-                <div class="fs-6">
-                    <% if (submissions.length === 0) { %>
-                        —
-                    <% } else { %>
-                        <%= new Date(submissions[0].submittedAt).toLocaleString() %>
-                    <% } %>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="card mb-3">
-    <div class="card-body">
-        <div class="row g-2 align-items-end">
-            <div class="col-12 col-md-4">
-                <label class="form-label">Search</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                    <input id="reportSearch" type="text" class="form-control" placeholder="Search by exam or student">
-                </div>
-            </div>
-            <div class="col-12 col-md-4">
-                <label class="form-label">Filter by Exam</label>
-                <select id="examFilter" class="form-select">
-                    <option value="">All Exams</option>
-                    <% exams.forEach(e => { %>
-                        <option value="<%= e._id %>"><%= e.title %> <%= e.subject ? '(' + e.subject + ')' : '' %></option>
-                    <% }) %>
-                </select>
-            </div>
-            <div class="col-12 col-md-4 text-md-end">
-                <label class="form-label d-none d-md-block">&nbsp;</label>
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                    <div class="form-check form-switch me-2" id="revealToggleWrapper" style="display:none;">
-                        <input class="form-check-input" type="checkbox" role="switch" id="globalRevealToggle">
-                        <label class="form-check-label" for="globalRevealToggle">Allow students to see correct answers</label>
+                <div class="col-12 col-md-4 text-md-end">
+                    <div class="d-inline-flex gap-2">
+                        <a href="/admin/manage-exams" class="btn btn-outline-primary btn-sm px-3 rounded-pill"><i class="bi bi-gear-fill me-1"></i> Manage Exams</a>
+                        <a href="/admin/invalidated" class="btn btn-outline-danger btn-sm px-3 rounded-pill"><i class="bi bi-shield-exclamation-fill me-1"></i> Invalidated Logs</a>
                     </div>
-                    <a href="/admin/manage-exams" class="btn btn-outline-secondary"><i class="bi bi-gear"></i> Manage Exams</a>
-                    <a href="/admin/invalidated" class="btn btn-outline-danger"><i class="bi bi-shield-exclamation"></i> Invalidated</a>
                 </div>
             </div>
         </div>
     </div>
-  </div>
 
-<div class="card">
-    <div class="card-body">
-        <% if (submissions.length === 0) { %>
-            <div class="alert alert-info"><i class="bi bi-info-circle"></i> No submissions yet.</div>
-        <% } else { %>
-        <div class="table-responsive">
-            <table class="table align-middle" id="reportsTable">
-                <thead>
-                    <tr>
-                        <th>Exam</th>
-                        <th>Subject</th>
-                        <th>Student</th>
-                        <th>Score</th>
-                        <th>Submitted</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% submissions.forEach(s => { %>
-                        <tr data-exam-id="<%= s.exam ? s.exam._id : '' %>">
-                            <td><%= s.exam ? s.exam.title : '-' %></td>
-                            <td><%= s.exam && s.exam.subject ? s.exam.subject : '-' %></td>
-                            <td><%= s.student ? (s.student.username || s.student.email) : '-' %></td>
-                            <td>
-                                <span class="badge <%= (s.score / (s.totalQuestions || 1)) >= 0.6 ? 'bg-success' : 'bg-warning text-dark' %>">
-                                    <%= s.score %>/<%= s.totalQuestions %>
-                                </span>
-                            </td>
-                            <td><%= new Date(s.submittedAt).toLocaleString() %></td>
-                            <td class="text-end">
-                                <div class="btn-group">
-                                    <a href="/admin/exam-reports/<%= s._id %>" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> View</a>
-                                    <% if (s.status === 'invalidated') { %>
-                                        <form action="/admin/exam-reports/reset/<%= s._id %>" method="POST" onsubmit="return confirm('Reset this submission to allow retake?')">
-                                            <button class="btn btn-sm btn-outline-warning" type="submit"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
-                                        </form>
-                                    <% } %>
-                                </div>
-                            </td>
-                        </tr>
-                    <% }) %>
-                </tbody>
-            </table>
+    <!-- METRICS GRID -->
+    <div class="col-12">
+        <div class="row g-3">
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="stat-card border-start border-4 border-primary">
+                    <span class="stat-icon accent-primary" style="width:40px; height:40px; font-size:1.1rem;"><i class="bi bi-clipboard-check"></i></span>
+                    <div class="stat-info">
+                        <span class="stat-title text-uppercase tracking-wider" style="font-size:0.65rem;">Submissions</span>
+                        <div class="stat-value fs-5 text-dark"><%= submissions.length %></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="stat-card border-start border-4 border-success">
+                    <span class="stat-icon accent-success" style="width:40px; height:40px; font-size:1.1rem;"><i class="bi bi-graph-up"></i></span>
+                    <div class="stat-info">
+                        <span class="stat-title text-uppercase tracking-wider" style="font-size:0.65rem;">Average score</span>
+                        <div class="stat-value fs-5 text-dark">
+                            <% if (submissions.length === 0) { %>0<% } else { %>
+                                <% const avg = (submissions.reduce((a, s) => a + (s.score || 0), 0) / submissions.length).toFixed(1); %>
+                                <%= avg %>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="stat-card border-start border-4 border-info">
+                    <span class="stat-icon accent-info" style="width:40px; height:40px; font-size:1.1rem;"><i class="bi bi-journal-check"></i></span>
+                    <div class="stat-info">
+                        <span class="stat-title text-uppercase tracking-wider" style="font-size:0.65rem;">Total exams</span>
+                        <div class="stat-value fs-5 text-dark"><%= exams.length %></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="stat-card border-start border-4 border-warning">
+                    <span class="stat-icon accent-warning" style="width:40px; height:40px; font-size:1.1rem;"><i class="bi bi-clock-history"></i></span>
+                    <div class="stat-info">
+                        <span class="stat-title text-uppercase tracking-wider" style="font-size:0.65rem;">Last Activity</span>
+                        <div class="stat-value fs-5 text-dark">
+                            <% if (submissions.length === 0) { %>—<% } else { %>
+                                <%= new Date(submissions[0].submittedAt).toLocaleDateString() %>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <% } %>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div class="col-12">
+        <div class="card p-4 border-0 shadow-sm bg-white">
+            <div class="row g-3 align-items-end">
+                <div class="col-12 col-md-3">
+                    <label class="form-label text-muted small fw-bold text-uppercase">Search Student / Exam</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input id="reportSearch" type="text" class="form-control border-start-0 bg-light" placeholder="Search by details...">
+                    </div>
+                </div>
+                
+                <div class="col-12 col-md-3">
+                    <label class="form-label text-muted small fw-bold text-uppercase">Select Exam Scope</label>
+                    <select id="examFilter" class="form-select bg-light">
+                        <option value="">All Assessments</option>
+                        <% exams.forEach(e => { %>
+                            <option value="<%= e._id %>"><%= e.title %> <%= e.subject ? '(' + e.subject + ')' : '' %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                
+                <div class="col-12 col-md-3 d-flex align-items-center">
+                    <div class="form-check form-switch" id="revealToggleWrapper" style="display:none;">
+                        <input class="form-check-input" type="checkbox" role="switch" id="globalRevealToggle">
+                        <label class="form-check-label small text-muted" for="globalRevealToggle">Students see correct options</label>
+                    </div>
+                </div>
+                
+                <!-- EXPORT & PRINT CONTROLS -->
+                <div class="col-12 col-md-3 text-md-end">
+                    <div class="d-flex gap-2 justify-content-md-end flex-wrap">
+                        <button type="button" class="btn btn-outline-success btn-sm px-3 rounded-pill" onclick="exportToExcel()"><i class="bi bi-file-earmark-excel-fill me-1"></i> Excel</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm px-3 rounded-pill" onclick="window.print()"><i class="bi bi-printer-fill me-1"></i> Print / PDF</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUBMISSIONS TABLE -->
+    <div class="col-12">
+        <div class="card table-card border-0 shadow-sm bg-white">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0 fw-bold text-dark">Student Submissions Log</h5>
+            </div>
+            
+            <div class="table-responsive">
+                <% if (submissions.length === 0) { %>
+                    <div class="p-5 text-center text-muted">
+                        <i class="bi bi-inbox fs-2 mb-2 d-block text-muted"></i>
+                        No submissions compiled yet.
+                    </div>
+                <% } else { %>
+                    <table class="table table-hover align-middle mb-0" id="reportsTable">
+                        <thead>
+                            <tr class="table-light">
+                                <th class="py-3 px-4">Exam / Subject</th>
+                                <th class="py-3">Student Examinee</th>
+                                <th class="py-3">Earned Score</th>
+                                <th class="py-3">Submission Date</th>
+                                <th class="py-3 px-4 text-end print-exclude">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportsTableBody">
+                            <% submissions.forEach(s => { %>
+                                <tr data-exam-id="<%= s.exam ? s.exam._id : '' %>">
+                                    <td class="px-4">
+                                        <div class="fw-bold text-dark"><%= s.exam ? s.exam.title : '-' %></div>
+                                        <span class="text-muted small"><%= s.exam && s.exam.subject ? s.exam.subject : '-' %></span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-semibold text-dark"><%= s.student ? (s.student.username || s.student.email) : '-' %></span>
+                                    </td>
+                                    <td>
+                                        <% const ratio = s.score / (s.totalQuestions || 1); %>
+                                        <span class="badge <%= ratio >= 0.7 ? 'bg-success-subtle text-success' : ratio >= 0.5 ? 'bg-warning-subtle text-warning' : 'bg-danger-subtle text-danger' %>">
+                                            <%= s.score %> / <%= s.totalQuestions %>
+                                        </span>
+                                    </td>
+                                    <td class="text-muted small">
+                                        <%= new Date(s.submittedAt).toLocaleString() %>
+                                    </td>
+                                    <td class="text-end print-exclude px-4">
+                                        <div class="d-inline-flex gap-1">
+                                            <a href="/admin/exam-reports/<%= s._id %>" class="btn btn-sm btn-outline-primary px-3 rounded-pill"><i class="bi bi-eye-fill"></i> Grade</a>
+                                            <% if (s.status === 'invalidated') { %>
+                                                <form action="/admin/exam-reports/reset/<%= s._id %>" method="POST" onsubmit="return confirm('Reset this submission to allow retake?')">
+                                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                                    <button class="btn btn-sm btn-outline-warning rounded-pill px-3" type="submit"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+                                                </form>
+                                            <% } %>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                <% } %>
+            </div>
+        </div>
     </div>
 </div>
+
+<style>
+/* Clean Print and PDF Layout configurations */
+@media print {
+    .topbar, .admin-sidebar, .breadcrumb-container, .btn, .input-group, select, footer, .print-exclude {
+        display: none !important;
+    }
+    body, .admin-shell, .admin-content, .admin-content-inner {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        width: 100% !important;
+        height: auto !important;
+    }
+    .table-card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    .table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+    }
+    .table th, .table td {
+        border: 1px solid #E2E8F0 !important;
+        padding: 10px !important;
+        font-size: 0.85rem !important;
+    }
+}
+</style>
 
 <script>
+    // CSV Export Parser Function
+    function exportToExcel() {
+        let csv = [];
+        const rows = document.querySelectorAll("#reportsTable tr");
+        
+        for (let i = 0; i < rows.length; i++) {
+            if (rows[i].style.display === 'none') continue;
+            let row = [];
+            const cols = rows[i].querySelectorAll("td, th");
+            
+            for (let j = 0; j < cols.length; j++) {
+                if (cols[j].classList.contains('print-exclude')) continue;
+                let data = cols[j].innerText.replace(/"/g, '""').trim();
+                row.push(`"${data}"`);
+            }
+            csv.push(row.join(","));
+        }
+        
+        const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csv.join("\n");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "Student_Exam_Reports.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
     (function(){
-        // Build examId -> reveal map from server data
+        // Server variables reveal answers mapping
         const examRevealMap = {
             <% exams.forEach(function(e, idx){ %>
             '<%= e._id %>': <%= e.revealAnswersToStudents ? 'true' : 'false' %><%= idx < exams.length - 1 ? ',' : '' %>
             <% }) %>
         };
+        
         const searchInput = document.getElementById('reportSearch');
         const examFilter = document.getElementById('examFilter');
         const revealWrapper = document.getElementById('revealToggleWrapper');
         const revealToggle = document.getElementById('globalRevealToggle');
+        
         function applyFilters(){
             const q = (searchInput.value || '').toLowerCase();
             const examId = examFilter.value;
-            document.querySelectorAll('#reportsTable tbody tr').forEach(tr => {
+            const table = document.getElementById('reportsTable');
+            if (!table) return;
+ 
+            table.querySelectorAll('tbody tr').forEach(tr => {
                 const text = tr.innerText.toLowerCase();
                 const matchesText = text.includes(q);
                 const matchesExam = !examId || tr.getAttribute('data-exam-id') === examId;
                 tr.style.display = (matchesText && matchesExam) ? '' : 'none';
             });
-            // Toggle visibility of global reveal switch
+            
             if (examId) {
                 revealWrapper.style.display = '';
-                // Set current checked state from map (default false)
-                const current = !!examRevealMap[examId];
-                revealToggle.checked = current;
+                revealToggle.checked = !!examRevealMap[examId];
             } else {
                 revealWrapper.style.display = 'none';
             }
         }
+        
         if (searchInput) searchInput.addEventListener('input', applyFilters);
         if (examFilter) examFilter.addEventListener('change', applyFilters);
 
-        // Live updates
+        // Real-time socket receivers
         try {
-          const socket = (typeof window !== 'undefined' && window.__appSocket) ? window.__appSocket : io();
-          socket.emit('join-admin');
-          socket.on('reports:update', function(){
-            // naive refresh to reflect updates
-            location.reload();
-          });
-          socket.on('exams:update', function(payload){
-            if (!payload) return;
-            if (payload.type === 'reveal' && payload.examId) {
-                examRevealMap[payload.examId] = !!payload.reveal;
-                const currentSelected = examFilter && examFilter.value;
-                if (currentSelected && currentSelected === String(payload.examId)) {
-                    // update toggle to reflect new state
-                    revealToggle.checked = !!payload.reveal;
+            const socket = (typeof window !== 'undefined' && window.__appSocket) ? window.__appSocket : io();
+            socket.emit('join-admin');
+            socket.on('reports:update', function(){
+                location.reload();
+            });
+            socket.on('exams:update', function(payload){
+                if (!payload) return;
+                if (payload.type === 'reveal' && payload.examId) {
+                    examRevealMap[payload.examId] = !!payload.reveal;
+                    const currentSelected = examFilter && examFilter.value;
+                    if (currentSelected && currentSelected === String(payload.examId)) {
+                        revealToggle.checked = !!payload.reveal;
+                    }
                 }
-            }
-          });
-        } catch (e) { /* ignore if socket not loaded */ }
+            });
+        } catch (e) {}
 
-        // Handle reveal toggle POST
+        // Global reveal toggle submit
         if (revealToggle) {
             revealToggle.addEventListener('change', async function(){
                 const examId = examFilter && examFilter.value;
@@ -210,7 +299,11 @@
                     const res = await fetch(`/admin/exams/${examId}/toggle-reveal`, {
                         method: 'POST',
                         credentials: 'same-origin',
-                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        headers: { 
+                            'Content-Type': 'application/json', 
+                            'Accept': 'application/json',
+                            'X-CSRF-Token': document.querySelector('input[name="_csrf"]')?.value || ''
+                        },
                         body: JSON.stringify({ reveal: revealToggle.checked })
                     });
                     if (!res.ok) { revealToggle.checked = !revealToggle.checked; return; }
@@ -228,10 +321,8 @@
             });
         }
 
-        // Initialize filters on load
         applyFilters();
     })();
 </script>
+
 <%- include('../partials/footer') %>
-
-

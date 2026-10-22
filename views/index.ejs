@@ -1,99 +1,85 @@
-<%- include('./partials/header', { title: 'Home' , messages: typeof messages !=='undefined' ? messages : {}, user:
-  typeof user !=='undefined' ? user : null }) %>
+<%- include('./partials/header', { title: 'Home', messages: typeof messages !=='undefined' ? messages : {}, user: typeof user !=='undefined' ? user : null }) %>
 
-  <div class="container py-2">
-    <div class="row justify-content-center align-items-center mb-5">
-      <div class="col-12 col-md-12 col-lg-12">
-        <div class="bg-primary text-white rounded shadow p-4 p-md-5 text-center">
-          <h1 class="display-5 mb-3">
-            <i class="bi bi-mortarboard-fill"></i> Welcome to ExamSystem
-          </h1>
-          <p class="lead mb-4">A comprehensive online examination platform for students and educators.</p>
-          <% if (!user) { %>
-            <a href="/register" class="btn btn-light btn-lg me-2 mb-2">
-              <i class="bi bi-person-plus"></i> Get Started
-            </a>
-            <a href="/login" class="btn btn-outline-light btn-lg mb-2">
-              <i class="bi bi-box-arrow-in-right"></i> Login
-            </a>
-            <% } else { %>
-              <a href="/exams" class="btn btn-light btn-lg mb-2">
-                <i class="bi bi-list-check"></i> View Exams
-              </a>
-              <% if (user.role==='admin' ) { %>
-                <a href="/admin/dashboard" class="btn btn-outline-light btn-lg ms-2 mb-2">
-                  <i class="bi bi-speedometer2"></i> Admin Dashboard
-                </a>
-                <% } %>
-                  <% } %>
-        </div>
-      </div>
-    </div>
-
-    <div class="row g-4 mb-5 justify-content-center">
-      <div class="col-12 col-md-4">
-        <div class="card h-100 border-0 shadow" style="box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-          <div class="card-body text-center py-4">
-            <i class="bi bi-clock-history" style="font-size: 3rem; color: #0d6efd;"></i>
-            <h5 class="card-title mt-3">Timed Exams</h5>
-            <p class="card-text">Take exams with automatic timing and submission when time expires.</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-12 col-md-4">
-        <div class="card h-100 border-0 shadow" style="box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-          <div class="card-body text-center py-4">
-            <i class="bi bi-award" style="font-size: 3rem; color: #0d6efd;"></i>
-            <h5 class="card-title mt-3">Instant Results</h5>
-            <p class="card-text">Get immediate feedback with detailed results and question review.</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-12 col-md-4">
-        <div class="card h-100 border-0 shadow" style="box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-          <div class="card-body text-center py-4">
-            <i class="bi bi-shield-check" style="font-size: 3rem; color: #0d6efd;"></i>
-            <h5 class="card-title mt-3">Secure Platform</h5>
-            <p class="card-text">Your data is protected with secure authentication and encryption.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <% if (!user) { %>
-      <div class="row justify-content-center">
-        <div class="col-12 col-md-12 col-lg-12">
-          <div class="card border-0 shadow"  style="box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-            <div class="card-body py-4">
-              <h3 class="card-title text-center mb-4">How It Works</h3>
-              <div class="row g-4">
-                <div class="col-12 col-md-4 text-center">
-                  <div
-                    class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3"
-                    style="width:48px;height:48px;font-size:1.5rem;">1</div>
-                  <h5>Register</h5>
-                  <p class="mb-0">Create your account as a student or administrator</p>
+<div class="row g-4 pb-5">
+    <!-- HERO SECTION -->
+    <div class="col-12">
+        <div class="dashboard-hero p-5 text-center text-lg-start d-flex flex-column flex-lg-row align-items-center justify-content-between gap-4">
+            <div style="max-width: 600px;">
+                <span class="badge bg-light text-primary mb-3 fw-semibold px-3 py-1 text-uppercase"><i class="bi bi-rocket-takeoff"></i> Enterprise Assessment Portal</span>
+                <h1 class="text-white fw-bold display-4 mb-2">Evaluate Talent Securely Online</h1>
+                <p class="text-white-50 lead mb-4">A unified assessment environment for educators and students, featuring active proctoring, live dashboards, and automatic grading sheets.</p>
+                <div class="hero-actions d-flex flex-wrap gap-2 justify-content-center justify-content-lg-start">
+                    <% if (!user) { %>
+                        <a href="/register" class="btn btn-light text-primary fw-semibold"><i class="bi bi-person-plus"></i> Get Started</a>
+                        <a href="/login" class="btn btn-outline-light"><i class="bi bi-box-arrow-in-right"></i> Sign In</a>
+                    <% } else { %>
+                        <% if (user.role === 'admin' || user.role === 'faculty') { %>
+                            <a href="/admin/dashboard" class="btn btn-light text-primary fw-semibold"><i class="bi bi-speedometer2"></i> Admin Dashboard</a>
+                        <% } else { %>
+                            <a href="/exams" class="btn btn-light text-primary fw-semibold"><i class="bi bi-grid"></i> Student Dashboard</a>
+                        <% } %>
+                    <% } %>
                 </div>
-                <div class="col-12 col-md-4 text-center">
-                  <div
-                    class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3"
-                    style="width:48px;height:48px;font-size:1.5rem;">2</div>
-                  <h5>Take Exams</h5>
-                  <p class="mb-0">Access available exams and complete them within the time limit</p>
-                </div>
-                <div class="col-12 col-md-4 text-center">
-                  <div
-                    class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3"
-                    style="width:48px;height:48px;font-size:1.5rem;">3</div>
-                  <h5>View Results</h5>
-                  <p class="mb-0">Check your scores and review your performance</p>
-                </div>
-              </div>
             </div>
-          </div>
+            <div class="d-none d-lg-block text-white opacity-90">
+                <i class="bi bi-mortarboard hero-icon"></i>
+            </div>
         </div>
-      </div>
-      <% } %>
-  </div>
+    </div>
 
-  <%- include('./partials/footer') %>
+    <!-- CORE FEATURES SECTION -->
+    <div class="col-12 mt-4 text-center">
+        <h3 class="fw-bold mb-2">Designed for Secure Evaluations</h3>
+        <p class="text-muted small">Powering academic evaluations and institutional test setups.</p>
+    </div>
+
+    <div class="col-12 col-md-4">
+        <div class="card h-100 p-4 border-0 shadow-sm text-center" style="position:relative; z-index:1;">
+            <div class="stat-icon accent-primary mx-auto mb-3" style="width: 64px; height: 64px; border-radius: 50%;"><i class="bi bi-shield-check fs-2"></i></div>
+            <h5 class="fw-bold text-dark">Lockdown Proctoring</h5>
+            <p class="text-muted small mb-0">Enforces full-screen compliance. Instantly voids attempts if students change tabs or leave the focus screen.</p>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card h-100 p-4 border-0 shadow-sm text-center" style="position:relative; z-index:1;">
+            <div class="stat-icon accent-success mx-auto mb-3" style="width: 64px; height: 64px; border-radius: 50%;"><i class="bi bi-lightning-charge fs-2"></i></div>
+            <h5 class="fw-bold text-dark">Fuzzy Auto-Grading</h5>
+            <p class="text-muted small mb-0">Auto-grades multiple-choice questions instantly and applies string-distance similarity checks for text reviews.</p>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card h-100 p-4 border-0 shadow-sm text-center" style="position:relative; z-index:1;">
+            <div class="stat-icon accent-warning mx-auto mb-3" style="width: 64px; height: 64px; border-radius: 50%;"><i class="bi bi-graph-up fs-2"></i></div>
+            <h5 class="fw-bold text-dark">Advanced Analytics</h5>
+            <p class="text-muted small mb-0">View detailed score reports, track student performance over time, export results to Excel, and control answer visibility — all from the admin dashboard.</p>
+        </div>
+    </div>
+
+    <!-- HOW IT WORKS SECTION (GUESTS ONLY) -->
+    <% if (!user) { %>
+        <div class="col-12 mt-5">
+            <div class="card p-4 border-0 shadow-sm bg-white">
+                <h4 class="fw-bold text-center mb-4 text-dark">Onboarding Roadmap</h4>
+                <div class="row g-4">
+                    <div class="col-12 col-md-4 text-center">
+                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center fw-bold mb-3 fs-5" style="width: 48px; height: 48px;">1</div>
+                        <h6 class="fw-bold text-dark">Account Setup</h6>
+                        <p class="text-muted small mb-0">Register email credentials to secure your workspace portal.</p>
+                    </div>
+                    <div class="col-12 col-md-4 text-center">
+                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center fw-bold mb-3 fs-5" style="width: 48px; height: 48px;">2</div>
+                        <h6 class="fw-bold text-dark">Take Assessments</h6>
+                        <p class="text-muted small mb-0">Browse and launch active exams under proctored timer constraints.</p>
+                    </div>
+                    <div class="col-12 col-md-4 text-center">
+                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center fw-bold mb-3 fs-5" style="width: 48px; height: 48px;">3</div>
+                        <h6 class="fw-bold text-dark">Check Results</h6>
+                        <p class="text-muted small mb-0">Review correct answers, view metrics, and advisor comments.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <% } %>
+</div>
+
+<%- include('./partials/footer') %>

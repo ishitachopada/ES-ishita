@@ -1,44 +1,67 @@
-<style>
-  body {
-    background: linear-gradient(135deg, #e3f0ff 0%, #ffffff 100%) !important;
-    min-height: 100vh;
-    overflow: hidden;
-  }
-  .register-bg {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-</style>
 <%- include('../partials/header', { title: 'Verify OTP', messages: typeof messages !== 'undefined' ? messages : {}, user: typeof user !== 'undefined' ? user : null }) %>
 
-<div class="register-bg">
-  <div class="col-12 col-md-8 col-lg-5 mx-auto">
-    <div class="card shadow border-0" style="box-shadow: 0 2px 8px rgba(0,0,0,0.08); background-color: #fff;">
-      <div class="card-body p-4 p-md-5">
-        <h3 class="card-title text-center mb-4">
-          <i class="bi bi-shield-lock"></i> Verify OTP
-        </h3>
-        <form action="/verify-otp" method="POST" autocomplete="off">
-            <% if (messages && messages.error) { %>
-              <div class="alert alert-danger"><%= messages.error %></div>
-            <% } %>
-            <% if (messages && messages.success) { %>
-              <div class="alert alert-success"><%= messages.success %></div>
-            <% } %>
-            <input type="hidden" name="email" value="<%= email %>" />
-          <div class="mb-3">
-            <label for="otp" class="form-label">Enter OTP sent to <%= email %>:</label>
-            <input type="text" class="form-control" id="otp" name="otp" required maxlength="6">
-          </div>
-          <div class="d-grid mb-2">
-            <button type="submit" class="btn btn-primary">Verify OTP</button>
-          </div>
-        </form>
-      </div>
+<div class="auth-split-container">
+    <!-- LEFT SIDEBAR ILLUSTRATION -->
+    <div class="auth-sidebar-panel d-none d-lg-flex">
+        <div class="mb-5">
+            <i class="bi bi-mortarboard-fill text-white" style="font-size: 3.25rem;"></i>
+            <h2 class="text-white mt-3 fw-bold display-6">ExamSystem</h2>
+            <p class="lead opacity-75">Secure, robust, and intuitive examination environment for global educators and students.</p>
+        </div>
+        <div class="mt-4">
+            <div class="d-flex align-items-start gap-3 mb-4">
+                <i class="bi bi-shield-check fs-2 text-white opacity-90 mt-1"></i>
+                <div>
+                    <h5 class="mb-1 fw-semibold text-white">Secure Proctoring</h5>
+                    <p class="mb-0 small text-white-50">Locked down full-screen focus modes and active anti-cheat tabs validation.</p>
+                </div>
+            </div>
+            <div class="d-flex align-items-start gap-3">
+                <i class="bi bi-shield-lock fs-2 text-white opacity-90 mt-1"></i>
+                <div>
+                    <h5 class="mb-1 fw-semibold text-white">Multi-Factor Check</h5>
+                    <p class="mb-0 small text-white-50">One-Time Password keys verify emails and protect assessment sessions.</p>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
+    
+    <!-- RIGHT FORM PANEL -->
+    <div class="auth-form-panel mx-auto">
+        <div class="auth-form-wrapper">
+            <div class="mb-4 text-center text-lg-start">
+                <h3 class="fw-bold mb-2"><i class="bi bi-shield-lock text-primary"></i> OTP Security</h3>
+                <p class="text-muted">An authentication code has been dispatched to your email address.</p>
+            </div>
+            
+            <form action="/verify-otp" method="POST" autocomplete="off">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="email" value="<%= email %>" />
+                
+                <div class="mb-4">
+                    <label for="otp" class="form-label">Enter Verification Code</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-key text-muted"></i></span>
+                        <input type="text" class="form-control text-center fw-bold fs-5 tracking-widest" id="otp" name="otp" placeholder="000000" required maxlength="6" style="letter-spacing: 0.25em;">
+                    </div>
+                    <div class="form-text text-muted mt-2">
+                        Please input the 6-digit code received at <strong class="text-dark"><%= email %></strong>.
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100 py-2.5 mb-3">
+                    <i class="bi bi-check-circle me-2"></i>Verify OTP Code
+                </button>
+            </form>
+            
+            <div class="text-center mt-4 text-muted small">
+                Did not receive the code? <a href="#" class="fw-semibold text-decoration-none text-primary">Resend OTP</a>
+            </div>
+            <div class="text-center mt-3 small">
+                <a href="/login" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i> Back to login</a>
+            </div>
+        </div>
+    </div>
 </div>
 
-<%- include('../partials/footer') %>
+<%- include('../partials/footer', { title: typeof title !== 'undefined' ? title : 'Verify OTP' }) %>

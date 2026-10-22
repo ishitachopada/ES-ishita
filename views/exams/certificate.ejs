@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate - <%= submission.exam.title %></title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for premium typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&family=Great+Vibes&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Alex+Brush&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Custom Font Assignments */
+        .font-serif-elegant { font-family: 'Playfair Display', Georgia, serif; }
+        .font-display-academic { font-family: 'Cinzel', serif; }
+        .font-signature { font-family: 'Alex Brush', cursive; }
+        .font-sans-clean { font-family: 'Montserrat', sans-serif; }
+
+        /* Root Variables for Themes */
+        :root {
+            --primary-accent: #b4975a; /* Gold default */
+            --bg-color: #fdfcf7;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border-opacity: 0.4;
+        }
+
+        body {
+            background-color: <%= isPreview ? 'transparent' : '#0b0f19' %>;
+            color: <%= isPreview ? '#0f172a' : '#f8fafc' %>;
+        }
+
+        /* Certificate-specific layout (A4 Landscape proportions) */
+        .certificate-outer-wrapper {
+            perspective: 1000px;
+        }
+
+        .certificate-container {
+            aspect-ratio: 1.414 / 1; /* Match A4 Landscape proportions */
+            position: relative;
+            box-sizing: border-box;
+            background-color: #FAF9F6;
+            color: var(--text-main);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Subtle secure background watermark style */
+        .certificate-watermark {
+            background-image: radial-gradient(rgba(197, 168, 128, 0.035) 1.5px, transparent 1.5px),
+                              radial-gradient(rgba(197, 168, 128, 0.035) 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+            background-position: 0 0, 12px 12px;
+        }
+
+        /* Corner Border Accents (Dynamic Colors set by JS) */
+        .corner-border-tl {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            width: 80px;
+            height: 80px;
+            border-top: 4px solid var(--primary-accent);
+            border-left: 4px solid var(--primary-accent);
+        }
+        .corner-border-tr {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            width: 80px;
+            height: 80px;
+            border-top: 4px solid var(--primary-accent);
+            border-right: 4px solid var(--primary-accent);
+        }
+        .corner-border-bl {
+            position: absolute;
+            bottom: 24px;
+            left: 24px;
+            width: 80px;
+            height: 80px;
+            border-bottom: 4px solid var(--primary-accent);
+            border-left: 4px solid var(--primary-accent);
+        }
+        .corner-border-br {
+            position: absolute;
+            bottom: 24px;
+            right: 24px;
+            width: 80px;
+            height: 80px;
+            border-bottom: 4px solid var(--primary-accent);
+            border-right: 4px solid var(--primary-accent);
+        }
+
+        /* Ribbon Shape Helper */
+        .clip-ribbon {
+            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 80%, 0% 100%);
+        }
+
+        /* Printing Specific Styles */
+        @media print {
+            body {
+                background: #ffffff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-wrapper {
+                width: 100vw !important;
+                height: 100vh !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                background: #ffffff !important;
+                box-shadow: none !important;
+            }
+            .certificate-container {
+                width: 297mm !important;
+                height: 210mm !important;
+                max-width: none !important;
+                max-height: none !important;
+                box-shadow: none !important;
+                border: none !important;
+                transform: scale(1) !important;
+                margin: 0 !important;
+                padding: 14mm !important;
+                page-break-inside: avoid;
+                page-break-after: avoid;
+            }
+            @page {
+                size: A4 landscape;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 md:p-8 overflow-x-hidden relative" style="background-color: <%= isPreview ? 'transparent' : '#0b0f19' %>;">
+
+    <!-- Background Ambient Lighting (UI only) -->
+    <div class="no-print absolute top-0 left-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="no-print absolute bottom-10 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <% if (!isPreview) { %>
+    <!-- Print / Export Button -->
+    <div class="no-print fixed top-4 right-4 z-50">
+        <a href="/exams/my-results" class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs px-4 py-2 rounded-lg shadow-lg transition-all flex items-center gap-1.5 active:scale-95 inline-block mr-2">
+            Back to Results
+        </a>
+        <button onclick="window.print()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xs px-4 py-2 rounded-lg shadow-lg transition-all flex items-center gap-1.5 active:scale-95 inline-block">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Print / Save PDF
+        </button>
+    </div>
+    <% } %>
+
+    <!-- Main Print Wrapper -->
+    <div class="print-wrapper w-full max-w-[1100px] my-auto">
+        
+        <!-- Certificate Frame Base -->
+        <div id="certificateCapture" class="certificate-container w-full rounded-xl overflow-hidden relative p-8 md:p-14 text-slate-900 flex flex-col justify-between border border-amber-900/10" style="background-color: #FAF9F6;">
+            
+            <!-- Secure Watermark Pattern (Dynamic) -->
+            <div id="certWatermark" class="certificate-watermark absolute inset-0 z-0"></div>
+
+            <!-- Custom Corner Borders -->
+            <div id="cornerBorders">
+                <div class="corner-border-tl"></div>
+                <div class="corner-border-tr"></div>
+                <div class="corner-border-bl"></div>
+                <div class="corner-border-br"></div>
+            </div>
+
+            <!-- Outer and Inner Border Frame Line Details -->
+            <div id="outerBorderFrame" class="absolute inset-[12px] md:inset-[20px] border border-[var(--primary-accent)] opacity-40 pointer-events-none z-10"></div>
+            <div id="innerBorderFrame" class="absolute inset-[16px] md:inset-[26px] border-2 border-[var(--primary-accent)] opacity-80 pointer-events-none z-10"></div>
+
+            <!-- Certificate Internal Content Structure -->
+            <div class="relative z-20 h-full flex flex-col justify-between items-center text-center">
+                
+                <!-- Header Crest / Logo -->
+                <div class="mt-2 md:mt-4 flex justify-center">
+                    <div id="crestSealIcon" class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center text-[var(--primary-accent)]">
+                        <!-- Premium Achievement Crest -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-full h-full" viewBox="0 0 100 100">
+                            <!-- Outer laurel branches -->
+                            <path d="M 50,85 A 35,35 0 0,1 18,48 M 50,85 A 35,35 0 0,0 82,48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="2 3"/>
+                            <!-- Inner golden rings -->
+                            <circle cx="50" cy="50" r="32" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.8"/>
+                            <circle cx="50" cy="50" r="28" fill="none" stroke="currentColor" stroke-width="0.5" stroke-dasharray="2 1"/>
+                            <!-- Star array -->
+                            <g transform="translate(50,50)">
+                                <polygon points="0,-12 3,-3 12,-3 5,2 8,11 0,6 -8,11 -5,2 -12,-3 -3,-3" fill="currentColor"/>
+                                <circle cx="-16" cy="-8" r="1.5" fill="currentColor" />
+                                <circle cx="16" cy="-8" r="1.5" fill="currentColor" />
+                                <circle cx="0" cy="18" r="1.5" fill="currentColor" />
+                            </g>
+                            <!-- Wreath Leafs representation -->
+                            <path d="M15,50 C12,42 20,38 25,45 M85,50 C88,42 80,38 75,45" fill="currentColor" opacity="0.7"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Main Certificate Titles -->
+                <div class="space-y-2 md:space-y-4 w-full">
+                    <p id="certInstitution" class="font-sans-clean text-[10px] md:text-xs lg:text-sm tracking-[0.25em] font-bold uppercase mb-1 text-[var(--primary-accent)]">
+                        GLOBAL TECHNOLOGY INSTITUTE OF AMERICA
+                    </p>
+                    
+                    <h2 class="font-display-academic text-2xl md:text-4xl lg:text-5xl tracking-widest font-extrabold uppercase mt-1" style="color: var(--text-main);">
+                        Certificate of Achievement
+                    </h2>
+                    
+                    <div class="flex items-center justify-center gap-3">
+                        <span class="w-10 h-[1px] bg-[var(--primary-accent)] opacity-60"></span>
+                        <span id="certPreamble" class="font-serif-elegant italic text-xs md:text-sm text-slate-500">
+                            This is proudly and officially conferred upon
+                        </span>
+                        <span class="w-10 h-[1px] bg-[var(--primary-accent)] opacity-60"></span>
+                    </div>
+                </div>
+
+                <!-- Recipient Name Callout -->
+                <div class="my-3 md:my-5">
+                    <h1 id="certRecipient" class="font-serif-elegant text-3xl md:text-5xl lg:text-6xl font-semibold italic text-slate-900 border-b border-gray-200/60 pb-2 inline-block px-12">
+                        <%= submission.student.username %>
+                    </h1>
+                </div>
+
+                <!-- Subject / Score Line -->
+                <div class="max-w-3xl px-4 space-y-2 md:space-y-3">
+                    <p id="certDescription" class="font-sans-clean text-xs md:text-sm text-slate-600 leading-relaxed">
+                        for having successfully challenged and demonstrated mastery in the advanced examinations for
+                    </p>
+                    <h3 id="certExamTitle" class="font-display-academic text-base md:text-xl lg:text-2xl font-bold tracking-wider text-slate-800 uppercase">
+                        <%= submission.exam.title %>
+                    </h3>
+                    <p id="certScore" class="font-serif-elegant italic text-xs md:text-base text-slate-500">
+                        with an outstanding overall score of <%= pct %>% — Achieving Highest Honors & Distinction
+                    </p>
+                </div>
+
+                <!-- Footer Details: Signatures, Seal & Metadata -->
+                <div class="w-full grid grid-cols-3 items-end mt-6 md:mt-10 px-4 md:px-12">
+                    
+                    <!-- Left Signature Area -->
+                    <div class="text-left flex flex-col justify-end">
+                        <div class="h-12 md:h-16 flex items-center justify-start">
+                            <span id="certSig1" class="font-signature text-3xl md:text-4xl text-indigo-950 opacity-95 transform -rotate-2 origin-bottom-left select-all">
+                                Sarah Jenkins
+                            </span>
+                        </div>
+                        <div class="border-t border-gray-300 pt-2 w-44 md:w-56">
+                            <p id="certSig1Name" class="font-sans-clean font-semibold text-[10px] md:text-xs text-slate-800">
+                                Prof. Sarah Jenkins, PhD
+                            </p>
+                            <p id="certSig1Title" class="font-sans-clean text-[9px] md:text-[10px] text-slate-400 uppercase tracking-wider">
+                                Academic Board Director
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Center Golden Embossed Seal -->
+                    <div class="flex justify-center relative">
+                        <div id="goldFoilSeal" class="w-20 h-20 md:w-24 lg:w-28 relative flex items-center justify-center transform hover:scale-105 transition-transform duration-500 z-10">
+                            <!-- Golden Seal Background Layers -->
+                            <div class="absolute inset-0 bg-gradient-to-tr from-amber-600 via-yellow-400 to-amber-500 rounded-full shadow-xl border border-amber-300 opacity-95 animate-spin-slow"></div>
+                            <div class="absolute inset-0.5 border border-amber-100 rounded-full border-dashed"></div>
+                            <div class="absolute inset-1.5 bg-amber-600 rounded-full opacity-10"></div>
+                            
+                            <!-- Star Core & Ribbon Details -->
+                            <div class="relative z-10 text-amber-950 font-display-academic font-black text-[9px] md:text-[11px] uppercase text-center tracking-tight leading-none">
+                                <div class="flex flex-col items-center justify-center gap-0.5">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-amber-950" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                    <span>OFFICIAL</span>
+                                    <span class="text-[7px] font-bold tracking-widest text-amber-900 mt-0.5">SEAL</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Drooping Seal Ribbons -->
+                            <div class="absolute -bottom-5 left-1/4 w-4 h-10 bg-amber-600/90 clip-ribbon transform -rotate-12 origin-top -z-10 shadow-sm border-r border-amber-700/30"></div>
+                            <div class="absolute -bottom-5 right-1/4 w-4 h-10 bg-amber-600/90 clip-ribbon transform rotate-12 origin-top -z-10 shadow-sm border-l border-amber-700/30"></div>
+                        </div>
+                    </div>
+
+                    <!-- Right Signature Area -->
+                    <div class="text-right flex flex-col justify-end items-end">
+                        <div class="h-12 md:h-16 flex items-center justify-end">
+                            <span id="certSig2" class="font-signature text-3xl md:text-4xl text-indigo-950 opacity-95 transform rotate-1 origin-bottom-right select-all">
+                                David Vance
+                            </span>
+                        </div>
+                        <div class="border-t border-gray-300 pt-2 w-44 md:w-56">
+                            <p id="certSig2Name" class="font-sans-clean font-semibold text-[10px] md:text-xs text-slate-800">
+                                David Vance, Registrar
+                            </p>
+                            <p id="certSig2Title" class="font-sans-clean text-[9px] md:text-[10px] text-slate-400 uppercase tracking-wider">
+                                Examinations Board Chairman
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Verification Metadata bottom line -->
+                <div class="w-full flex justify-between items-center text-[8px] md:text-[10px] text-slate-400 font-sans-clean mt-6 pt-2 border-t border-slate-200/60">
+                    <span id="certDateDisplay">DATE OF ISSUANCE: <%= new Date(submission.submittedAt).toLocaleDateString() %></span>
+                    <span id="certIdDisplay">VERIFICATION CODE: <%= submission._id %></span>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

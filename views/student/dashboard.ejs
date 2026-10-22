@@ -1,13 +1,133 @@
-<%- include('../partials/header') %><%- include('../partials/header') %>
+<%- include('../partials/header', { title: 'Student Dashboard', activeNav: 'dashboard' }) %>
 
-<div class="container mt-5">
-  <div class="card shadow" style="box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-    <div class="card-body">
-      <h2>Student Dashboard</h2>
-      <p>Welcome! Use the navigation to view available exams.</p>
-      <a href="/exams" class="btn btn-primary me-2">View Exams</a>
-      <a href="/exams/my-results" class="btn btn-success mt-2">My Results</a>
+<div class="container-fluid py-4">
+    <div class="dashboard-main-grid">
+        <section class="dashboard-hero">
+            <div>
+                <span class="badge bg-white text-primary mb-3">Welcome back, <%= user ? (user.displayName || user.username) : 'Student' %></span>
+                <h1>Student Dashboard</h1>
+                <p class="mb-4">Track your upcoming exams, view results, and access study resources from one responsive portal.</p>
+                <div class="hero-actions d-flex flex-wrap gap-2">
+                    <a href="/exams" class="btn btn-light text-primary">View Available Exams</a>
+                    <a href="/exams/my-results" class="btn btn-outline-light text-white">My Results</a>
+                </div>
+            </div>
+        </section>
+
+        <aside class="card p-4 h-100">
+            <h5 class="mb-3">Quick Summary</h5>
+            <div class="list-group list-group-flush">
+                <div class="list-group-item px-0 py-3 border-0 d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small">Role</div>
+                        <div class="fw-semibold text-dark"><%= user ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Student' %></div>
+                    </div>
+                    <span class="badge bg-success align-self-center">Active</span>
+                </div>
+                <div class="list-group-item px-0 py-3 border-0 d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small">Email</div>
+                        <div class="fw-semibold text-dark"><%= user ? user.email : 'N/A' %></div>
+                    </div>
+                </div>
+                <div class="list-group-item px-0 py-3 border-0 d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small">Department</div>
+                        <div class="fw-semibold text-dark"><%= user && user.department ? user.department : 'General Studies' %></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
     </div>
-  </div>
+
+    <div class="stats-grid mb-4">
+        <article class="stat-card">
+            <span class="stat-icon bg-primary text-white"><i class="bi bi-journal-text"></i></span>
+            <div class="stat-info">
+                <div class="stat-title">Available Exams</div>
+                <div class="fw-semibold fs-4">3</div>
+            </div>
+        </article>
+        <article class="stat-card">
+            <span class="stat-icon bg-success text-white"><i class="bi bi-award"></i></span>
+            <div class="stat-info">
+                <div class="stat-title">Completed</div>
+                <div class="fw-semibold fs-4">12</div>
+            </div>
+        </article>
+        <article class="stat-card">
+            <span class="stat-icon bg-warning text-white"><i class="bi bi-clock-history"></i></span>
+            <div class="stat-info">
+                <div class="stat-title">Pending Review</div>
+                <div class="fw-semibold fs-4">1</div>
+            </div>
+        </article>
+        <article class="stat-card">
+            <span class="stat-icon bg-danger text-white"><i class="bi bi-bar-chart-line"></i></span>
+            <div class="stat-info">
+                <div class="stat-title">Average Score</div>
+                <div class="fw-semibold fs-4">84%</div>
+            </div>
+        </article>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card p-4 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="mb-0">Upcoming Exams</h5>
+                    <a href="/exams" class="btn btn-sm btn-primary">Browse Exams</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Exam</th>
+                                <th>Subject</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Final Assessment</td>
+                                <td>Mathematics</td>
+                                <td>60 min</td>
+                                <td><span class="badge bg-info">Scheduled</span></td>
+                                <td><a href="/exams" class="text-primary text-decoration-none">View</a></td>
+                            </tr>
+                            <tr>
+                                <td>Weekly Quiz</td>
+                                <td>English</td>
+                                <td>30 min</td>
+                                <td><span class="badge bg-success">Open</span></td>
+                                <td><a href="/exams" class="text-primary text-decoration-none">Take Now</a></td>
+                            </tr>
+                            <tr>
+                                <td>Practical Test</td>
+                                <td>Computer Science</td>
+                                <td>45 min</td>
+                                <td><span class="badge bg-secondary">Draft</span></td>
+                                <td><a href="/exams" class="text-primary text-decoration-none">Details</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card p-4 h-100">
+                <h5 class="mb-3">Recent Activity</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item px-0 py-3 border-0">Submitted <strong>Quiz 2</strong> with <span class="text-success">92%</span>.</li>
+                    <li class="list-group-item px-0 py-3 border-0">New exam available in <strong>Physics</strong>.</li>
+                    <li class="list-group-item px-0 py-3 border-0">Profile updated successfully.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>
+
 <%- include('../partials/footer') %>
